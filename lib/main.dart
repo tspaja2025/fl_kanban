@@ -31,12 +31,25 @@ class _DefaultScreenState extends State<DefaultScreen> {
   // Helper to return list of avatars
   List<AvatarWidget> getAvatars() {
     return [
-      Avatar(initials: Avatar.getInitials("TS"), backgroundColor: Colors.red),
-      Avatar(initials: Avatar.getInitials("TS"), backgroundColor: Colors.green),
-      Avatar(initials: Avatar.getInitials("TS"), backgroundColor: Colors.blue),
+      Avatar(
+        initials: Avatar.getInitials("TS"),
+        backgroundColor: Colors.red,
+        size: 24,
+      ),
+      Avatar(
+        initials: Avatar.getInitials("TS"),
+        backgroundColor: Colors.green,
+        size: 24,
+      ),
+      Avatar(
+        initials: Avatar.getInitials("TS"),
+        backgroundColor: Colors.blue,
+        size: 24,
+      ),
       Avatar(
         initials: Avatar.getInitials("TS"),
         backgroundColor: Colors.yellow,
+        size: 24,
       ),
     ];
   }
@@ -54,11 +67,9 @@ class _DefaultScreenState extends State<DefaultScreen> {
               child: TextField(
                 placeholder: const Text("Search..."),
                 features: [
-                  // Leading icon only visible when the text is empty
                   InputFeature.leading(
                     StatedWidget.builder(
                       builder: (context, states) {
-                        // Use a muted icon normally, switch to the full icon on hover
                         if (states.hovered) {
                           return const Icon(Icons.search);
                         } else {
@@ -68,8 +79,6 @@ class _DefaultScreenState extends State<DefaultScreen> {
                     ),
                     visibility: InputFeatureVisibility.textEmpty,
                   ),
-                  // Clear button visible when there is text and the field is focused,
-                  // or whenever the field is hovered
                   InputFeature.clear(
                     visibility:
                         (InputFeatureVisibility.textNotEmpty &
@@ -81,7 +90,47 @@ class _DefaultScreenState extends State<DefaultScreen> {
             ),
             const SizedBox(width: 4),
             PrimaryButton(
-              onPressed: () {},
+              onPressed: () {
+                showDialog(
+                  context: context,
+                  builder: (context) {
+                    return AlertDialog(
+                      title: const Text("Add New Column"),
+                      content: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          ConstrainedBox(
+                            constraints: const BoxConstraints(maxWidth: 400),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const TextField(
+                                  placeholder: Text("Enter column name"),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                      actions: [
+                        SecondaryButton(
+                          onPressed: () {
+                            Navigator.pop(context);
+                          },
+                          child: const Text("Cancel"),
+                        ),
+                        PrimaryButton(
+                          onPressed: () {
+                            Navigator.pop(context);
+                          },
+                          child: const Text("Create Column"),
+                        ),
+                      ],
+                    );
+                  },
+                );
+              },
               leading: const Icon(LucideIcons.plus, size: 16),
               child: const Text("Add Column"),
             ),
@@ -96,20 +145,8 @@ class _DefaultScreenState extends State<DefaultScreen> {
                         return const DropdownMenu(
                           children: [
                             MenuButton(
-                              leading: Icon(LucideIcons.sparkles, size: 16),
-                              child: Text("Upgrade to Pro"),
-                            ),
-                            MenuButton(
-                              leading: Icon(LucideIcons.badgeCheck, size: 16),
-                              child: Text("Account"),
-                            ),
-                            MenuButton(
-                              leading: Icon(LucideIcons.creditCard, size: 16),
-                              child: Text("Billing"),
-                            ),
-                            MenuButton(
-                              leading: Icon(LucideIcons.bell, size: 16),
-                              child: Text("Notifications"),
+                              leading: Icon(LucideIcons.settings, size: 16),
+                              child: Text("Settings"),
                             ),
                             MenuDivider(),
                             MenuButton(
@@ -136,112 +173,115 @@ class _DefaultScreenState extends State<DefaultScreen> {
       ],
       child: SafeArea(
         minimum: const EdgeInsets.all(16),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            KanbanColumn(
-              title: "Column Title 1",
-              itemCount: 4,
-              children: [
-                KanbanColumnItem(
-                  title: "Item 1",
-                  priority: "High",
-                  children: [
-                    const Text(
-                      "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
-                    ),
-                    const SizedBox(height: 16),
-                    AvatarGroup.toLeft(children: getAvatars()),
-                  ],
-                ),
-                KanbanColumnItem(
-                  title: "Item 2",
-                  priority: "Medium",
-                  children: [
-                    const Text(
-                      "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
-                    ),
-                  ],
-                ),
-                KanbanColumnItem(
-                  title: "Item 3",
-                  priority: "Low",
-                  children: [
-                    const Text(
-                      "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
-                    ),
-                  ],
-                ),
-                KanbanColumnItem(
-                  title: "Item 4",
-                  priority: "High",
-                  children: [
-                    const Text(
-                      "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
-                    ),
-                  ],
-                ),
-              ],
-            ),
-            KanbanColumn(
-              title: "Column Title 2",
-              itemCount: 3,
-              children: [
-                KanbanColumnItem(
-                  title: "Item 1",
-                  priority: "High",
-                  children: [
-                    const Text(
-                      "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
-                    ),
-                  ],
-                ),
-                KanbanColumnItem(
-                  title: "Item 2",
-                  priority: "Medium",
-                  children: [
-                    const Text(
-                      "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
-                    ),
-                  ],
-                ),
-                KanbanColumnItem(
-                  title: "Item 3",
-                  priority: "Low",
-                  children: [
-                    const Text(
-                      "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
-                    ),
-                  ],
-                ),
-              ],
-            ),
-            KanbanColumn(
-              title: "Column Title 3",
-              itemCount: 2,
-              children: [
-                KanbanColumnItem(
-                  title: "Item 1",
-                  priority: "High",
-                  children: [
-                    const Text(
-                      "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
-                    ),
-                  ],
-                ),
-                KanbanColumnItem(
-                  title: "Item 2",
-                  priority: "Medium",
-                  children: [
-                    const Text(
-                      "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ],
-        ).gap(16),
+        child: SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              KanbanColumn(
+                title: "Column Title 1",
+                itemCount: 4,
+                children: [
+                  KanbanColumnItem(
+                    title: "Item 1",
+                    priority: "High",
+                    children: [
+                      const Text(
+                        "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+                      ),
+                      const SizedBox(height: 16),
+                      AvatarGroup.toLeft(children: getAvatars()),
+                    ],
+                  ),
+                  KanbanColumnItem(
+                    title: "Item 2",
+                    priority: "Medium",
+                    children: [
+                      const Text(
+                        "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+                      ),
+                    ],
+                  ),
+                  KanbanColumnItem(
+                    title: "Item 3",
+                    priority: "Low",
+                    children: [
+                      const Text(
+                        "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+                      ),
+                    ],
+                  ),
+                  KanbanColumnItem(
+                    title: "Item 4",
+                    priority: "High",
+                    children: [
+                      const Text(
+                        "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              KanbanColumn(
+                title: "Column Title 2",
+                itemCount: 3,
+                children: [
+                  KanbanColumnItem(
+                    title: "Item 1",
+                    priority: "High",
+                    children: [
+                      const Text(
+                        "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+                      ),
+                    ],
+                  ),
+                  KanbanColumnItem(
+                    title: "Item 2",
+                    priority: "Medium",
+                    children: [
+                      const Text(
+                        "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+                      ),
+                    ],
+                  ),
+                  KanbanColumnItem(
+                    title: "Item 3",
+                    priority: "Low",
+                    children: [
+                      const Text(
+                        "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              KanbanColumn(
+                title: "Column Title 3",
+                itemCount: 2,
+                children: [
+                  KanbanColumnItem(
+                    title: "Item 1",
+                    priority: "High",
+                    children: [
+                      const Text(
+                        "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+                      ),
+                    ],
+                  ),
+                  KanbanColumnItem(
+                    title: "Item 2",
+                    priority: "Medium",
+                    children: [
+                      const Text(
+                        "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ],
+          ).gap(16),
+        ),
       ),
     );
   }
@@ -261,7 +301,8 @@ class KanbanColumn extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Expanded(
+    return SizedBox(
+      width: 320,
       child: Card(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -287,19 +328,22 @@ class KanbanColumn extends StatelessWidget {
                         showDropdown(
                           context: context,
                           builder: (context) {
-                            return const DropdownMenu(
+                            return DropdownMenu(
                               children: [
                                 MenuButton(
-                                  leading: Icon(LucideIcons.plus),
-                                  child: Text("New Task"),
+                                  onPressed: (_) {},
+                                  leading: const Icon(LucideIcons.plus),
+                                  child: const Text("New Task"),
                                 ),
                                 MenuButton(
-                                  leading: Icon(LucideIcons.pencil),
-                                  child: Text("Edit Column"),
+                                  onPressed: (_) {},
+                                  leading: const Icon(LucideIcons.pencil),
+                                  child: const Text("Edit Column"),
                                 ),
                                 MenuButton(
-                                  leading: Icon(LucideIcons.trash2),
-                                  child: Text("Delete Column"),
+                                  onPressed: (_) {},
+                                  leading: const Icon(LucideIcons.trash2),
+                                  child: const Text("Delete Column"),
                                 ),
                               ],
                             );
@@ -343,62 +387,59 @@ class KanbanColumnItem extends StatelessWidget {
   Widget build(BuildContext context) {
     return MouseRegion(
       cursor: SystemMouseCursors.grab,
-      child: SizedBox(
-        width: double.infinity,
-        child: Card(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Text(title).bold,
-                  const Spacer(),
-                  Builder(
-                    builder: (context) {
-                      return IconButton.ghost(
-                        onPressed: () {
-                          showDropdown(
-                            context: context,
-                            builder: (context) {
-                              return const DropdownMenu(
-                                children: [
-                                  MenuButton(
-                                    leading: Icon(LucideIcons.pencil),
-                                    child: Text("Edit"),
-                                  ),
-                                  MenuButton(
-                                    leading: Icon(LucideIcons.trash2),
-                                    child: Text("Delete"),
-                                  ),
-                                ],
-                              );
-                            },
-                          );
-                        },
-                        density: ButtonDensity.iconDense,
-                        icon: const Icon(LucideIcons.menu, size: 16),
-                      );
-                    },
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              ...children,
-              const SizedBox(height: 8),
-              const Divider(),
-              const SizedBox(height: 8),
-              Row(
-                children: [
-                  PrimaryBadge(child: Text(priority)),
-                  const Spacer(),
-                  const Icon(LucideIcons.paperclip, size: 16),
-                  const Text("2"),
-                  const Icon(LucideIcons.messageSquare, size: 16),
-                  const Text("4"),
-                ],
-              ).gap(4),
-            ],
-          ),
+      child: Card(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Text(title).bold,
+                const Spacer(),
+                Builder(
+                  builder: (context) {
+                    return IconButton.ghost(
+                      onPressed: () {
+                        showDropdown(
+                          context: context,
+                          builder: (context) {
+                            return const DropdownMenu(
+                              children: [
+                                MenuButton(
+                                  leading: Icon(LucideIcons.pencil),
+                                  child: Text("Edit"),
+                                ),
+                                MenuButton(
+                                  leading: Icon(LucideIcons.trash2),
+                                  child: Text("Delete"),
+                                ),
+                              ],
+                            );
+                          },
+                        );
+                      },
+                      density: ButtonDensity.iconDense,
+                      icon: const Icon(LucideIcons.menu, size: 16),
+                    );
+                  },
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            ...children,
+            const SizedBox(height: 8),
+            const Divider(),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                PrimaryBadge(child: Text(priority)),
+                const Spacer(),
+                const Icon(LucideIcons.paperclip, size: 16),
+                const Text("2"),
+                const Icon(LucideIcons.messageSquare, size: 16),
+                const Text("4"),
+              ],
+            ).gap(4),
+          ],
         ),
       ),
     );
