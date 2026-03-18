@@ -2,13 +2,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
-// TODO:
-// Column dragging
-// Columns move only horizontally
-// Column items move cross-column and vertically inside the column
-// Move state to riverpod
-// Search tasks functionality
-
 void main() {
   runApp(ProviderScope(child: const FlKanban()));
 }
@@ -36,114 +29,113 @@ class DefaultScreen extends ConsumerStatefulWidget {
 }
 
 class _DefaultScreenState extends ConsumerState<DefaultScreen> {
-  List<SortableData<ColumnData>> columns = [
-    SortableData(
-      ColumnData(id: "backlog", title: "Backlog", color: Colors.red),
+  List<BoardColumn> board = [
+    BoardColumn(
+      column: ColumnData(id: 1, title: "Backlog", color: Colors.red),
+      items: [
+        SortableData(
+          TaskItem(
+            id: 1,
+            title: "Integrate Stripe payment gateway",
+            description:
+                "Compile competitor landing page designs for inspiration.",
+            color: Colors.red,
+            priority: "High",
+          ),
+        ),
+        SortableData(
+          TaskItem(
+            id: 2,
+            title: "Redesign marketing homepage",
+            description:
+                "Compile competitor landing page designs for inspiration.",
+            color: Colors.red,
+            priority: "Medium",
+          ),
+        ),
+        SortableData(
+          TaskItem(
+            id: 3,
+            title: "Set up automated backups",
+            description:
+                "Compile competitor landing page designs for inspiration.",
+            color: Colors.red,
+            priority: "Low",
+          ),
+        ),
+        SortableData(
+          TaskItem(
+            id: 4,
+            title: "Implement blog search functionality",
+            description:
+                "Compile competitor landing page designs for inspiration.",
+            color: Colors.red,
+            priority: "Medium",
+          ),
+        ),
+      ],
     ),
-    SortableData(
-      ColumnData(id: "inProgress", title: "In Progress", color: Colors.orange),
+    BoardColumn(
+      column: ColumnData(id: 2, title: "In Progress", color: Colors.orange),
+      items: [
+        SortableData(
+          TaskItem(
+            id: 5,
+            title: "Dark mode toggle implementation",
+            description:
+                "Compile competitor landing page designs for inspiration.",
+            color: Colors.yellow,
+            priority: "High",
+          ),
+        ),
+        SortableData(
+          TaskItem(
+            id: 6,
+            title: "Database schema refactoring",
+            description:
+                "Compile competitor landing page designs for inspiration.",
+            color: Colors.yellow,
+            priority: "Medium",
+          ),
+        ),
+        SortableData(
+          TaskItem(
+            id: 7,
+            title: "Accessibility improvements",
+            description:
+                "Compile competitor landing page designs for inspiration.",
+            color: Colors.yellow,
+            priority: "Low",
+          ),
+        ),
+      ],
     ),
-    SortableData(ColumnData(id: "done", title: "Done", color: Colors.green)),
+    BoardColumn(
+      column: ColumnData(id: 3, title: "Done", color: Colors.green),
+      items: [
+        SortableData(
+          TaskItem(
+            id: 8,
+            title: "Set up CI/CD pipeline",
+            description:
+                "Compile competitor landing page designs for inspiration.",
+            color: Colors.green,
+            priority: "High",
+          ),
+        ),
+        SortableData(
+          TaskItem(
+            id: 9,
+            title: "Initial project setup",
+            description:
+                "Compile competitor landing page designs for inspiration.",
+            color: Colors.green,
+            priority: "Medium",
+          ),
+        ),
+      ],
+    ),
   ];
-
-  Map<String, List<SortableData<TaskItem>>> items = {
-    "backlog": [
-      SortableData(
-        TaskItem(
-          id: "task1",
-          title: "Integrate Stripe payment gateway",
-          description:
-              "Compile competitor landing page designs for inspiration.",
-          color: Colors.red,
-          priority: "High",
-        ),
-      ),
-      SortableData(
-        TaskItem(
-          id: "task2",
-          title: "Redesign marketing homepage",
-          description:
-              "Compile competitor landing page designs for inspiration.",
-          color: Colors.red,
-          priority: "Medium",
-        ),
-      ),
-      SortableData(
-        TaskItem(
-          id: "task3",
-          title: "Set up automated backups",
-          description:
-              "Compile competitor landing page designs for inspiration.",
-          color: Colors.red,
-          priority: "Low",
-        ),
-      ),
-      SortableData(
-        TaskItem(
-          id: "task4",
-          title: "Implement blog search functionality",
-          description:
-              "Compile competitor landing page designs for inspiration.",
-          color: Colors.red,
-          priority: "Medium",
-        ),
-      ),
-    ],
-    "inProgress": [
-      SortableData(
-        TaskItem(
-          id: "task5",
-          title: "Dark mode toggle implementation",
-          description:
-              "Compile competitor landing page designs for inspiration.",
-          color: Colors.yellow,
-          priority: "High",
-        ),
-      ),
-      SortableData(
-        TaskItem(
-          id: "task6",
-          title: "Databse schema refactoring",
-          description:
-              "Compile competitor landing page designs for inspiration.",
-          color: Colors.yellow,
-          priority: "Medium",
-        ),
-      ),
-      SortableData(
-        TaskItem(
-          id: "task7",
-          title: "Accessibility improvements",
-          description:
-              "Compile competitor landing page designs for inspiration.",
-          color: Colors.yellow,
-          priority: "Low",
-        ),
-      ),
-    ],
-    "done": [
-      SortableData(
-        TaskItem(
-          id: "task8",
-          title: "Set up CI/CD pipeline",
-          description:
-              "Compile competitor landing page designs for inspiration.",
-          color: Colors.green,
-          priority: "High",
-        ),
-      ),
-      SortableData(
-        TaskItem(
-          id: "task9",
-          title: "Initial project setup",
-          description:
-              "Compile competitor landing page designs for inspiration.",
-          color: Colors.green,
-          priority: "Medium",
-        ),
-      ),
-    ],
-  };
 
   @override
   void initState() {
@@ -195,99 +187,31 @@ class _DefaultScreenState extends ConsumerState<DefaultScreen> {
       child: SafeArea(
         minimum: const EdgeInsets.all(16),
         child: SortableLayer(
+          lock: true,
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              for (int colIndex = 0; colIndex < columns.length; colIndex++)
-                Expanded(
-                  child: Sortable<ColumnData>(
-                    data: columns[colIndex],
-                    onAcceptLeft: (value) {
-                      setState(() {
-                        _moveColumn(value, colIndex);
-                      });
-                    },
-                    onAcceptRight: (value) {
-                      setState(() {
-                        _moveColumn(value, colIndex + 1);
-                      });
-                    },
-                    child: Container(
-                      margin: const EdgeInsets.all(8),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.all(12),
-                            color: Colors.gray.shade100,
-                            child: Text(columns[colIndex].data.title).bold,
-                          ),
+              for (int colIndex = 0; colIndex < board.length; colIndex++)
+                Sortable<int>(
+                  key: ValueKey(board[colIndex].column.id),
+                  data: SortableData(board[colIndex].column.id),
 
-                          const SizedBox(height: 8),
+                  // move column left
+                  onAcceptLeft: (value) {
+                    setState(() {
+                      moveColumn(value.data, colIndex);
+                    });
+                  },
 
-                          SortableDropFallback<TaskItem>(
-                            onAccept: (value) {
-                              setState(() {
-                                _moveItemToColumn(
-                                  value,
-                                  columns[colIndex].data.id,
-                                  items[columns[colIndex].data.id]!.length,
-                                );
-                              });
-                            },
-                            child: Column(
-                              children: [
-                                for (
-                                  int itemIndex = 0;
-                                  itemIndex < items.length;
-                                  itemIndex++
-                                )
-                                  Sortable<TaskItem>(
-                                    data:
-                                        items[columns[colIndex]
-                                            .data
-                                            .id]![itemIndex],
-                                    onAcceptTop: (value) {
-                                      setState(() {
-                                        _moveItemWithinColumn(
-                                          value,
-                                          columns[colIndex].data.id,
-                                          itemIndex,
-                                        );
-                                      });
-                                    },
-                                    onAcceptBottom: (value) {
-                                      setState(() {
-                                        _moveItemWithinColumn(
-                                          value,
-                                          columns[colIndex].data.id,
-                                          itemIndex + 1,
-                                        );
-                                      });
-                                    },
-                                    child: Container(
-                                      margin: const EdgeInsets.symmetric(
-                                        vertical: 4,
-                                      ),
-                                      padding: const EdgeInsets.all(12),
-                                      decoration: BoxDecoration(
-                                        border: Border.all(color: Colors.gray),
-                                        borderRadius: BorderRadius.circular(4),
-                                      ),
-                                      child: Text(
-                                        "${items[columns[colIndex].data.id]![itemIndex].data}",
-                                      ),
-                                    ),
-                                  ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
+                  // move column right
+                  onAcceptRight: (value) {
+                    setState(() {
+                      moveColumn(value.data, colIndex + 1);
+                    });
+                  },
+
+                  child: buildColumn(colIndex),
                 ),
-              const EmptyKanbanColumn(),
             ],
           ).gap(16),
         ),
@@ -295,102 +219,25 @@ class _DefaultScreenState extends ConsumerState<DefaultScreen> {
     );
   }
 
-  void _moveColumn(SortableData<ColumnData> draggedColumn, int newIndex) {
-    final oldIndex = columns.indexWhere(
-      (col) => col.data.id == draggedColumn.data.id,
-    );
+  Widget buildColumn(int colIndex) {
+    final column = board[colIndex];
 
-    if (oldIndex != -1 && oldIndex != newIndex) {
-      final item = columns.removeAt(oldIndex);
-      columns.insert(newIndex, item);
-    }
-  }
-
-  void _moveItemWithinColumn(
-    SortableData<TaskItem> draggedItem,
-    String targetColumnId,
-    int newIndex,
-  ) {
-    String? sourceColumnId;
-    int oldIndex = -1;
-
-    for (var entry in items.entries) {
-      final index = entry.value.indexWhere(
-        (item) => item.data == draggedItem.data,
-      );
-      if (index != -1) {
-        sourceColumnId = entry.key;
-        oldIndex = index;
-        break;
-      }
-    }
-
-    if (sourceColumnId != null && oldIndex != -1) {
-      if (sourceColumnId == targetColumnId) {
-        // Same column - just reorder
-        if (oldIndex != newIndex) {
-          final item = items[sourceColumnId]!.removeAt(oldIndex);
-          items[sourceColumnId]!.insert(newIndex, item);
-        }
-      } else {
-        // Different column - move between columns
-        final item = items[sourceColumnId]!.removeAt(oldIndex);
-        items[targetColumnId]!.insert(newIndex, item);
-      }
-    }
-  }
-
-  void _moveItemToColumn(
-    SortableData<TaskItem> draggedItem,
-    String targetColumnId,
-    int newIndex,
-  ) {
-    _moveItemWithinColumn(draggedItem, targetColumnId, newIndex);
-  }
-}
-
-class KanbanColumn extends ConsumerStatefulWidget {
-  final List<List<SortableData<TaskItem>>> lists;
-  final List<SortableData<TaskItem>> column;
-  final String title;
-  final Color color;
-
-  const KanbanColumn({
-    super.key,
-    required this.lists,
-    required this.column,
-    required this.title,
-    required this.color,
-  });
-
-  @override
-  ConsumerState<KanbanColumn> createState() => _KanbanColumnState();
-}
-
-class _KanbanColumnState extends ConsumerState<KanbanColumn> {
-  @override
-  Widget build(BuildContext context) {
     return Container(
       width: 360,
       decoration: BoxDecoration(
-        border: Border(top: BorderSide(color: widget.color, width: 4)),
-        color: widget.color.withValues(alpha: 0.1),
+        border: Border(top: BorderSide(color: column.column.color, width: 4)),
+        color: column.column.color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(12),
       ),
       padding: const EdgeInsets.all(16),
-      child: SortableDropFallback<String>(
+      child: SortableDropFallback<TaskItem>(
         onAccept: (value) {
           setState(() {
-            swapItemInLists(
-              [widget.lists],
-              value,
-              widget.column,
-              widget.column.length,
-            );
+            moveTask(value, colIndex, column.items.length);
           });
         },
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
               children: [
@@ -398,7 +245,7 @@ class _KanbanColumnState extends ConsumerState<KanbanColumn> {
                   child: Icon(LucideIcons.gripVertical, size: 16),
                 ),
                 const SizedBox(width: 8),
-                Text(widget.title).semiBold,
+                Text(column.column.title).semiBold,
                 const Spacer(),
                 // Column actions
                 Builder(
@@ -437,223 +284,206 @@ class _KanbanColumnState extends ConsumerState<KanbanColumn> {
               ],
             ),
 
-            for (int i = 0; i < widget.column.length; i++)
-              Sortable<TaskItem>(
-                data: widget.column[i],
-                onAcceptTop: (value) {
-                  setState(() {
-                    swapItemInLists([widget.lists], value, widget.column, i);
-                  });
-                },
-                onAcceptBottom: (value) {
-                  setState(() {
-                    swapItemInLists(
-                      [widget.lists],
-                      value,
-                      widget.column,
-                      i + 1,
-                    );
-                  });
-                },
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    border: Border(
-                      left: BorderSide(color: widget.color, width: 4),
-                    ),
-                    borderRadius: BorderRadius.circular(8),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.1),
-                        blurRadius: 2,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
+            Column(
+              children: [
+                for (int i = 0; i < column.items.length; i++) ...[
+                  // 👇 DROP ZONE ABOVE
+                  SortableDropFallback<TaskItem>(
+                    onAccept: (value) {
+                      setState(() {
+                        moveTask(value, colIndex, i);
+                      });
+                    },
+                    child: const SizedBox(height: 8),
                   ),
-                  padding: const EdgeInsets.all(8),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          const SortableDragHandle(
-                            child: Icon(LucideIcons.gripVertical, size: 16),
-                          ),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: Text(
-                              widget.column[i].data.title,
-                            ).semiBold.small,
-                          ),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 6,
-                              vertical: 2,
-                            ),
-                            decoration: BoxDecoration(
-                              color: widget.color,
-                              borderRadius: BorderRadius.circular(4),
-                            ),
-                            child: Text(
-                              widget.column[i].data.priority,
-                            ).xSmall.bold,
-                          ),
-                          Builder(
-                            builder: (BuildContext context) {
-                              return IconButton.ghost(
-                                onPressed: () {
-                                  showDropdown(
-                                    context: context,
-                                    builder: (BuildContext context) {
-                                      return DropdownMenu(
-                                        children: [
-                                          const MenuLabel(
-                                            child: Text("Actions"),
-                                          ),
-                                          const MenuDivider(),
-                                          MenuButton(
-                                            onPressed: (_) {},
-                                            child: const Text("Edit"),
-                                          ),
-                                          const MenuDivider(),
-                                          MenuButton(
-                                            onPressed: (_) {},
-                                            child: const Text("Delete"),
-                                          ),
-                                        ],
-                                      );
-                                    },
-                                  );
-                                },
-                                icon: const Icon(
-                                  LucideIcons.settings,
-                                  size: 16,
-                                ),
-                              );
-                            },
-                          ),
-                        ],
-                      ),
 
-                      Text(widget.column[i].data.description).muted.xSmall,
-                    ],
-                  ).gap(16),
-                ),
-              ),
-          ],
-        ).gap(16),
-      ),
-    );
-  }
-}
+                  // 👇 ACTUAL ITEM
+                  Sortable<TaskItem>(
+                    key: ValueKey(column.items[i].data.id),
+                    data: column.items[i],
+                    child: buildTask(column.items[i].data),
+                  ),
+                ],
 
-class EmptyKanbanColumn extends ConsumerStatefulWidget {
-  const EmptyKanbanColumn({super.key});
-
-  @override
-  ConsumerState<EmptyKanbanColumn> createState() => _EmptyKanbanColumnState();
-}
-
-class _EmptyKanbanColumnState extends ConsumerState<EmptyKanbanColumn> {
-  final TextEditingController _titleController = TextEditingController();
-  ColorDerivative _selectedColor = ColorDerivative.fromColor(Colors.blue);
-
-  @override
-  void dispose() {
-    _titleController.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      width: 360,
-      child: Container(
-        decoration: BoxDecoration(
-          color: Colors.gray.shade100,
-          borderRadius: BorderRadius.circular(12),
-        ),
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            PrimaryButton(
-              onPressed: () {
-                showDialog(
-                  context: context,
-                  builder: (BuildContext context) {
-                    return AlertDialog(
-                      title: const Text("Add New Column"),
-                      content: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          ConstrainedBox(
-                            constraints: const BoxConstraints(maxWidth: 320),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.stretch,
-                              children: [
-                                FormField(
-                                  key: FormKey(#title),
-                                  label: const Text("Title"),
-                                  child: TextField(
-                                    controller: _titleController,
-                                    placeholder: const Text("Column title"),
-                                  ),
-                                ),
-
-                                FormField(
-                                  key: FormKey(#color),
-                                  label: const Text("Color"),
-                                  child: SizedBox(
-                                    width: 32,
-                                    height: 32,
-                                    child: ColorInput(
-                                      value: _selectedColor,
-                                      orientation: Axis.horizontal,
-                                      promptMode: PromptMode.popover,
-                                      onChanged: (value) {
-                                        setState(() {
-                                          _selectedColor = value;
-                                        });
-                                      },
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ).gap(16),
-                          ),
-                        ],
-                      ),
-                      actions: [
-                        SecondaryButton(
-                          onPressed: () {
-                            Navigator.pop(context);
-                          },
-                          child: const Text("Cancel"),
-                        ),
-                        PrimaryButton(
-                          onPressed: () {},
-                          child: const Text("Create Column"),
-                        ),
-                      ],
-                    );
+                // 👇 DROP ZONE AT END
+                SortableDropFallback<TaskItem>(
+                  onAccept: (value) {
+                    setState(() {
+                      moveTask(value, colIndex, column.items.length);
+                    });
                   },
-                );
-              },
-              alignment: Alignment.center,
-              child: const Text("Add New Column"),
+                  child: const SizedBox(height: 20),
+                ),
+              ],
             ),
+
+            // SortableDropFallback<TaskItem>(
+            //   onAccept: (value) {
+            //     print('SortableDropFallback triggered fro column $colIndex');
+            //     setState(() {
+            //       moveTask(value, colIndex, column.items.length);
+            //     });
+            //   },
+            //   child: Column(
+            //     children: [
+            //       for (int i = 0; i < column.items.length; i++)
+            //         Sortable<TaskItem>(
+            //           key: ValueKey(column.items[i].data.id),
+            //           data: column.items[i],
+            //           child: buildTask(column.items[i].data),
+            //         ),
+            //     ],
+            //   ).gap(16),
+            // ),
           ],
         ).gap(16),
       ),
     );
+  }
+
+  Widget buildTask(TaskItem task) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        border: Border(left: BorderSide(color: task.color, width: 4)),
+        borderRadius: BorderRadius.circular(8),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.1),
+            blurRadius: 2,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      padding: const EdgeInsets.all(8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const SortableDragHandle(
+                child: Icon(LucideIcons.gripVertical, size: 16),
+              ),
+              const SizedBox(width: 8),
+              Expanded(child: Text(task.title).semiBold.small),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                decoration: BoxDecoration(
+                  color: _getPriorityColor(task.priority),
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: Text(task.priority).xSmall.bold,
+              ),
+              Builder(
+                builder: (BuildContext context) {
+                  return IconButton.ghost(
+                    onPressed: () {
+                      showDropdown(
+                        context: context,
+                        builder: (BuildContext context) {
+                          return DropdownMenu(
+                            children: [
+                              const MenuLabel(child: Text("Actions")),
+                              const MenuDivider(),
+                              MenuButton(
+                                onPressed: (_) {},
+                                child: const Text("Edit"),
+                              ),
+                              const MenuDivider(),
+                              MenuButton(
+                                onPressed: (_) {},
+                                child: const Text("Delete"),
+                              ),
+                            ],
+                          );
+                        },
+                      );
+                    },
+                    icon: const Icon(LucideIcons.settings, size: 16),
+                  );
+                },
+              ),
+            ],
+          ),
+          Text(task.description),
+        ],
+      ),
+    );
+  }
+
+  void moveTask(
+    SortableData<TaskItem> value,
+    int targetColumnIndex,
+    int targetIndex,
+  ) {
+    SortableData<TaskItem>? removed;
+    int? sourceColumnIndex;
+    int? sourceIndex;
+
+    print(
+      'moveTask called: targetColumn=$targetColumnIndex, targetIndex=$targetIndex',
+    );
+    print('Moving task with id: ${value.data.id}');
+
+    // Find the source column and remove the task
+    for (int colIndex = 0; colIndex < board.length; colIndex++) {
+      final col = board[colIndex];
+      final index = col.items.indexWhere((e) => e.data.id == value.data.id);
+
+      if (index != -1) {
+        removed = col.items.removeAt(index);
+        sourceColumnIndex = colIndex;
+        sourceIndex = index;
+        break;
+      }
+    }
+
+    if (removed == null) return;
+
+    final targetList = board[targetColumnIndex].items;
+
+    // Adjust target index for same-column moves
+    if (sourceColumnIndex == targetColumnIndex) {
+      if (sourceIndex! < targetIndex) {
+        targetIndex -= 1;
+      }
+    }
+
+    // Clamp the target index to valid range
+    targetIndex = targetIndex.clamp(0, targetList.length);
+
+    // Insert at the new position
+    targetList.insert(targetIndex, removed);
+  }
+
+  void moveColumn(int from, int to) {
+    if (from == to) return;
+
+    final column = board.removeAt(from);
+
+    if (from < to) {
+      to -= 1;
+    }
+
+    board.insert(to, column);
+  }
+
+  Color _getPriorityColor(String priority) {
+    switch (priority.toLowerCase()) {
+      case "high":
+        return Colors.red.shade100;
+      case "medium":
+        return Colors.orange.shade100;
+      case "low":
+        return Colors.green.shade100;
+      default:
+        return Colors.green.shade100;
+    }
   }
 }
 
 class ColumnData {
-  final String id;
+  final int id;
   String title;
   Color color;
 
@@ -669,7 +499,7 @@ class ColumnData {
 }
 
 class TaskItem {
-  final String id;
+  final int id;
   String title;
   String description;
   Color color;
@@ -698,3 +528,17 @@ class TaskItem {
     );
   }
 }
+
+class BoardColumn {
+  final ColumnData column;
+  final List<SortableData<TaskItem>> items;
+
+  BoardColumn({required this.column, required this.items});
+}
+
+// Problems:
+// Can't move tasks cross-column.
+// Currently debug prints fire within column not cross-column.
+// onAcceptTop triggered: col=1, index=1
+// moveTask called: targetColumn=1, targetIndex=1
+// Moving task with id: 7
