@@ -846,3 +846,197 @@ class _CreateNewProjectScreenState
     );
   }
 }
+
+// 1. State management
+// onAccept: (value) {
+//   setState(() {   ← This setState doesn't affect the provider
+//     notifier.moveTask(value, column.data.tasks, column.data.tasks.length);
+//   });
+// },
+
+// 2. Memory leak(?)
+// final scrollController = ScrollController(); ← This needs disposal
+
+// 3. Hardcoded Values & Magic Strings
+// Instead of hardcoded project data
+//
+// final projectTitle = "Project Velocity";
+// final projectDescription = "System architecture...";
+//
+// Use a provider for project data
+// final projectProvider = FutureProvider<Project>((ref) async {
+//   Fetch from service
+// });
+
+// 4. Performance optimizations
+// Replace manual for loop with ListView.builder for better performance
+// ListView.builder(
+//   shrinkWrap: true,
+//   physics: const NeverScrollableScrollPhysics(),
+//   itemCount: column.data.tasks.length,
+//   itemBuilder: (context, taskIndex) {
+//     return Sortable<TaskData>(
+//       data: column.data.tasks[taskIndex],
+//       // ... rest of the code
+//     );
+//   },
+// )
+
+// 5. Separation of concerns
+// class TaskData {
+//   final String id; // ← Add unique identifiers
+//   final String title;
+//   final String description;
+//   final List<Widget> tags;
+//   final Priority priority; // ← Use enum instead of String
+//   final Color priorityColor;
+
+//   const TaskData({
+//     required this.id,
+//     required this.title,
+//     required this.description,
+//     required this.tags,
+//     required this.priority,
+//     required this.priorityColor,
+//   });
+// }
+//
+// enum Priority { low, medium, high }
+
+// 6. Improve Drag & Drop logic
+// void moveTask(
+//   SortableData<TaskData> task,
+//   List<SortableData<TaskData>> targetList,
+//   int index,
+// ) {
+//   final newState = [...state];
+
+//   // Find and remove from source column
+//   SortableData<ColumnData>? sourceColumn;
+//   for (var col in newState) {
+//     if (col.data.tasks.contains(task)) {
+//       sourceColumn = col;
+//       break;
+//     }
+//   }
+
+//   if (sourceColumn != null) {
+//     sourceColumn.data.tasks.remove(task);
+//   }
+
+//   // Insert at target position
+//   final safeIndex = index.clamp(0, targetList.length);
+//   targetList.insert(safeIndex, task);
+
+//   state = newState;
+// }
+
+// 7. Add Error Handling
+// class _CreateNewProjectScreenState extends ConsumerState<CreateNewProjectScreen> {
+//   final _formKey = GlobalKey<FormState>();
+//   String? _title;
+//   String? _description;
+
+//   void _handleCreate() {
+//     if (!_formKey.currentState!.validate()) return;
+
+//     try {
+//       // Create project logic
+//     } catch (e) {
+//       ScaffoldMessenger.of(context).showSnackBar(
+//         SnackBar(content: Text('Error creating project: $e')),
+//       );
+//     }
+//   }
+
+//   // Add validation to FormFields
+//   FormField(
+//     key: FormKey(#title),
+//     label: const Text("Title"),
+//     child: TextField(
+//       validator: (value) {
+//         if (value?.isEmpty ?? true) {
+//           return 'Title is required';
+//         }
+//         return null;
+//       },
+//     ),
+//   ),
+// }
+
+// 8. Accessibility
+// Tooltips or if possible semantic labels
+
+// 9. Extract Reusable Widgets
+// class ProjectCard extends StatelessWidget {
+//   final VoidCallback onTap;
+//   final String title;
+//   final String description;
+//   final List<Widget>? actions;
+
+//   const ProjectCard({
+//     super.key,
+//     required this.onTap,
+//     required this.title,
+//     required this.description,
+//     this.actions,
+//   });
+
+//   @override
+//   Widget build(BuildContext context) {
+//     return MouseRegion(
+//       cursor: SystemMouseCursors.click,
+//       child: GestureDetector(
+//         onTap: onTap,
+//         child: Card(
+//           elevation: _hovered ? 4 : 2,
+//           child: Padding(
+//             padding: const EdgeInsets.all(16),
+//             child: Column(
+//               crossAxisAlignment: CrossAxisAlignment.start,
+//               children: [
+//                 Row(
+//                   children: [
+//                     Text(title).semiBold,
+//                     const Spacer(),
+//                     if (actions != null) ...actions!,
+//                   ],
+//                 ),
+//                 const SizedBox(height: 16),
+//                 Text(description).muted.small,
+//               ],
+//             ),
+//           ),
+//         ),
+//       ),
+//     );
+//   }
+// }
+
+// 10. Loading states
+// class KanbanColumn extends ConsumerWidget {
+//   @override
+//   Widget build(BuildContext context, WidgetRef ref) {
+//     final columnsAsync = ref.watch(kanbanProvider);
+
+//     return columnsAsync.when(
+//       data: (columns) => // Your existing UI,
+//       loading: () => const Center(child: CircularProgressIndicator()),
+//       error: (err, stack) => Center(child: Text('Error: $err')),
+//     );
+//   }
+// }
+
+// 11. Type Safety
+// Replace List<Widget> tags with List<Tag>
+// class Tag {
+//   final String label;
+//   final Color color;
+
+//   const Tag({required this.label, required this.color});
+// }
+
+// class TaskData {
+//   final List<Tag> tags;  // ← Instead of List<Widget>
+//   // ...
+// }
