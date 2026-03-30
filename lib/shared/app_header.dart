@@ -18,7 +18,7 @@ class AppHeader extends ConsumerWidget {
           ? [
               IconButton.outline(
                 onPressed: () {
-                  context.pop(context);
+                  context.pop();
                 },
                 icon: const Icon(LucideIcons.chevronLeft, size: 16),
               ),
