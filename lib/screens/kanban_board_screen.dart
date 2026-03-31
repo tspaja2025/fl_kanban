@@ -26,6 +26,7 @@ class KanbanBoardScreen extends ConsumerWidget {
                 columnIndex: i,
                 onMoveTask: notifier.moveTask,
               ),
+            KanbanColumnEmpty(),
           ],
         ).gap(16),
       ),
@@ -33,7 +34,7 @@ class KanbanBoardScreen extends ConsumerWidget {
   }
 }
 
-class KanbanColumn extends ConsumerWidget {
+class KanbanColumn extends ConsumerStatefulWidget {
   final SortableData<KanbanColumnData> column;
   final int columnIndex;
   final void Function(SortableData<KanbanTaskData>, int, int) onMoveTask;
@@ -46,7 +47,12 @@ class KanbanColumn extends ConsumerWidget {
   });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<KanbanColumn> createState() => _KanbanColumnState();
+}
+
+class _KanbanColumnState extends ConsumerState<KanbanColumn> {
+  @override
+  Widget build(BuildContext context) {
     return Container(
       width: 360,
       decoration: BoxDecoration(
@@ -57,11 +63,136 @@ class KanbanColumn extends ConsumerWidget {
       padding: const EdgeInsets.all(16),
       child: SortableDropFallback<KanbanTaskData>(
         onAccept: (value) {
-          onMoveTask(value, columnIndex, column.data.tasks.length);
+          widget.onMoveTask(
+            value,
+            widget.columnIndex,
+            widget.column.data.tasks.length,
+          );
         },
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [_buildColumnHeader(), ..._buildTaskList()],
+          children: [
+            _buildColumnHeader(),
+            ..._buildTaskList(),
+            PrimaryButton(
+              onPressed: () {
+                showDialog(
+                  context: context,
+                  builder: (context) {
+                    final FormController controller = FormController();
+                    String? selectedValue;
+                    DateTime? dateValue;
+
+                    return AlertDialog(
+                      title: const Text("New Task"),
+                      content: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          ConstrainedBox(
+                            constraints: const BoxConstraints(maxWidth: 400),
+                            child: Form(
+                              controller: controller,
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                                children: [
+                                  const FormField(
+                                    key: FormKey(#title),
+                                    label: Text("Title"),
+                                    child: TextField(),
+                                  ),
+                                  const FormField(
+                                    key: FormKey(#description),
+                                    label: Text("Description"),
+                                    child: TextArea(maxLines: 3),
+                                  ),
+                                  FormField(
+                                    key: const FormKey(#priority),
+                                    label: const Text("Priority"),
+                                    child: Select<String>(
+                                      itemBuilder: (context, item) {
+                                        return Text(item);
+                                      },
+                                      popupConstraints: const BoxConstraints(
+                                        maxHeight: 300,
+                                        maxWidth: 200,
+                                      ),
+                                      onChanged: (value) {
+                                        setState(() {
+                                          selectedValue = value;
+                                        });
+                                      },
+                                      value: selectedValue,
+                                      placeholder: const Text(
+                                        "Select priority",
+                                      ),
+                                      popup: const SelectPopup(
+                                        items: SelectItemList(
+                                          children: [
+                                            SelectItemButton(
+                                              value: "High",
+                                              child: Text("High"),
+                                            ),
+                                            SelectItemButton(
+                                              value: "Medium",
+                                              child: Text("Medium"),
+                                            ),
+                                            SelectItemButton(
+                                              value: "Low",
+                                              child: Text("Low"),
+                                            ),
+                                          ],
+                                        ),
+                                      ).call,
+                                    ),
+                                  ),
+                                  FormField(
+                                    key: FormKey(#dueDate),
+                                    label: Text("Due Date"),
+                                    child: DatePicker(
+                                      value: dateValue,
+                                      mode: PromptMode.popover,
+                                      stateBuilder: (date) {
+                                        if (date.isAfter(DateTime.now())) {
+                                          return DateState.disabled;
+                                        }
+                                        return DateState.enabled;
+                                      },
+                                      onChanged: (value) {
+                                        setState(() {
+                                          dateValue = value;
+                                        });
+                                      },
+                                    ),
+                                  ),
+                                ],
+                              ).gap(16),
+                            ),
+                          ),
+                        ],
+                      ),
+                      actions: [
+                        OutlineButton(
+                          onPressed: () {
+                            Navigator.pop(context);
+                          },
+                          child: const Text("Cancel"),
+                        ),
+                        OutlineButton(
+                          onPressed: () {
+                            Navigator.of(context).pop(controller.values);
+                          },
+                          child: const Text("Save"),
+                        ),
+                      ],
+                    );
+                  },
+                );
+              },
+              alignment: Alignment.center,
+              child: const Text("New Task"),
+            ),
+          ],
         ).gap(16),
       ),
     );
@@ -70,29 +201,48 @@ class KanbanColumn extends ConsumerWidget {
   Widget _buildColumnHeader() {
     return Row(
       children: [
-        Text(column.data.title),
+        Text(widget.column.data.title),
         gap(8),
-        PrimaryBadge(child: Text("${column.data.tasks.length}")),
+        PrimaryBadge(child: Text("${widget.column.data.tasks.length}")),
         const Spacer(),
-        IconButton.ghost(
-          onPressed: () {},
-          icon: const Icon(LucideIcons.ellipsis),
+        Builder(
+          builder: (context) {
+            return IconButton.ghost(
+              onPressed: () {
+                showDropdown(
+                  context: context,
+                  builder: (context) {
+                    return const DropdownMenu(
+                      children: [
+                        MenuLabel(child: Text("Actions")),
+                        MenuDivider(),
+                        MenuButton(child: Text("Add Task")),
+                        MenuButton(child: Text("Edit Column")),
+                        MenuButton(child: Text("Delete Column")),
+                      ],
+                    );
+                  },
+                );
+              },
+              icon: const Icon(LucideIcons.ellipsis, size: 16),
+            );
+          },
         ),
       ],
     );
   }
 
   List<Widget> _buildTaskList() {
-    return List.generate(column.data.tasks.length, (taskIndex) {
-      final task = column.data.tasks[taskIndex];
+    return List.generate(widget.column.data.tasks.length, (taskIndex) {
+      final task = widget.column.data.tasks[taskIndex];
 
       return Sortable<KanbanTaskData>(
         data: task,
         onAcceptTop: (value) {
-          onMoveTask(value, columnIndex, taskIndex);
+          widget.onMoveTask(value, widget.columnIndex, taskIndex);
         },
         onAcceptBottom: (value) {
-          onMoveTask(value, columnIndex, taskIndex + 1);
+          widget.onMoveTask(value, widget.columnIndex, taskIndex + 1);
         },
         child: KanbanColumnItem(
           title: task.data.title,
@@ -102,6 +252,81 @@ class KanbanColumn extends ConsumerWidget {
         ),
       );
     });
+  }
+}
+
+class KanbanColumnEmpty extends ConsumerWidget {
+  const KanbanColumnEmpty({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      child: GestureDetector(
+        onTap: () {
+          showDialog(
+            context: context,
+            builder: (context) {
+              final FormController controller = FormController();
+
+              return AlertDialog(
+                title: const Text("New Column"),
+                content: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 400),
+                      child: Form(
+                        controller: controller,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: const [
+                            FormField(
+                              key: FormKey(#columnTitle),
+                              label: Text("Column Title"),
+                              child: TextField(),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                actions: [
+                  OutlineButton(
+                    onPressed: () {
+                      Navigator.pop(context);
+                    },
+                    child: const Text("Cancel"),
+                  ),
+                  OutlineButton(
+                    onPressed: () {
+                      Navigator.of(context).pop(controller.values);
+                    },
+                    child: const Text("Save"),
+                  ),
+                ],
+              );
+            },
+          );
+        },
+        child: Container(
+          width: 360,
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.card,
+            border: Border.all(color: Theme.of(context).colorScheme.border),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [const Icon(LucideIcons.plus, size: 32)],
+          ).gap(16),
+        ),
+      ),
+    );
   }
 }
 

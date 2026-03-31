@@ -29,7 +29,59 @@ class KanbanProjectScreen extends ConsumerWidget {
                 description: board.description,
               ),
             KanbanEmptyProjectCard(
-              onTap: () => context.pushNamed("createProject"),
+              onTap: () => {
+                showDialog(
+                  context: context,
+                  builder: (context) {
+                    final FormController controller = FormController();
+
+                    return AlertDialog(
+                      title: const Text("New Project"),
+                      content: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          ConstrainedBox(
+                            constraints: const BoxConstraints(maxWidth: 400),
+                            child: Form(
+                              controller: controller,
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                                children: const [
+                                  FormField(
+                                    key: FormKey(#title),
+                                    label: Text("Title"),
+                                    child: TextField(),
+                                  ),
+                                  FormField(
+                                    key: FormKey(#description),
+                                    label: Text("Description"),
+                                    child: TextArea(maxLines: 3),
+                                  ),
+                                ],
+                              ).gap(16),
+                            ),
+                          ),
+                        ],
+                      ),
+                      actions: [
+                        OutlineButton(
+                          onPressed: () {
+                            Navigator.pop(context);
+                          },
+                          child: const Text("Cancel"),
+                        ),
+                        OutlineButton(
+                          onPressed: () {
+                            Navigator.of(context).pop(controller.values);
+                          },
+                          child: const Text("Save"),
+                        ),
+                      ],
+                    );
+                  },
+                ),
+              },
             ),
           ],
         ),
