@@ -3,126 +3,16 @@ import 'package:fl_kanban/widgets/badge.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
-class KanbanBoardScreen extends ConsumerStatefulWidget {
+class KanbanBoardScreen extends ConsumerWidget {
   final String projectId;
 
   const KanbanBoardScreen({super.key, required this.projectId});
 
   @override
-  ConsumerState<KanbanBoardScreen> createState() => _KanbanBoardScreenState();
-}
+  Widget build(BuildContext context, WidgetRef ref) {
+    final columns = ref.watch(kanbanProvider);
+    final notifier = ref.read(kanbanProvider.notifier);
 
-class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> {
-  late List<SortableData<KanbanColumnData>> columns;
-
-  @override
-  void initState() {
-    super.initState();
-    _initializeColumns();
-  }
-
-  void _initializeColumns() {
-    columns = [
-      SortableData(
-        KanbanColumnData(
-          id: "1",
-          title: "To Do",
-          tasks: [
-            SortableData(
-              KanbanTaskData(
-                id: "1",
-                title: "Competitor Spatial Analysis",
-                description:
-                    "Benchmarking the ease of movement in competing architect platforms.",
-                priority: "High",
-                color: Colors.red,
-              ),
-            ),
-            SortableData(
-              KanbanTaskData(
-                id: "2",
-                title: "V3 Iconography Pack",
-                description:
-                    "Exporting all stroke-based icons for the new shadcn library.",
-                priority: "Medium",
-                color: Colors.orange,
-              ),
-            ),
-          ],
-        ),
-      ),
-      SortableData(
-        KanbanColumnData(
-          id: "2",
-          title: "In Progress",
-          tasks: [
-            SortableData(
-              KanbanTaskData(
-                id: "3",
-                title: "Kinetic Physics Engine",
-                description:
-                    "Refining the spring animations for the dashboard cards transitions.",
-                priority: "Low",
-                color: Colors.green,
-              ),
-            ),
-          ],
-        ),
-      ),
-      SortableData(
-        KanbanColumnData(
-          id: "3",
-          title: "Review",
-          tasks: [
-            SortableData(
-              KanbanTaskData(
-                id: "4",
-                title: "Auth Flow Refactor",
-                description:
-                    "Security audit and 2FA implementation for enterprise users.",
-                priority: "High",
-                color: Colors.red,
-              ),
-            ),
-          ],
-        ),
-      ),
-    ];
-  }
-
-  void _moveTask(
-    SortableData<KanbanTaskData> task,
-    int targetColumnIndex,
-    int targetTaskIndex,
-  ) {
-    setState(() {
-      // Find source column and remove task
-      SortableData<KanbanColumnData>? sourceColumn;
-      SortableData<KanbanTaskData>? removedTask;
-
-      for (var column in columns) {
-        final taskIndex = column.data.tasks.indexWhere((t) => t == task);
-        if (taskIndex != -1) {
-          sourceColumn = column;
-          removedTask = column.data.tasks.removeAt(taskIndex);
-          break;
-        }
-      }
-
-      if (removedTask == null) return;
-
-      // Add to target column
-      final targetColumn = columns[targetColumnIndex];
-      if (targetTaskIndex >= targetColumn.data.tasks.length) {
-        targetColumn.data.tasks.add(removedTask);
-      } else {
-        targetColumn.data.tasks.insert(targetTaskIndex, removedTask);
-      }
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
     return SortableLayer(
       child: SingleChildScrollView(
         scrollDirection: Axis.horizontal,
@@ -134,7 +24,7 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> {
                 key: ValueKey(columns[i].data.id),
                 column: columns[i],
                 columnIndex: i,
-                onMoveTask: _moveTask,
+                onMoveTask: notifier.moveTask,
               ),
           ],
         ).gap(16),
@@ -160,7 +50,8 @@ class KanbanColumn extends ConsumerWidget {
     return Container(
       width: 360,
       decoration: BoxDecoration(
-        color: Colors.gray.shade100,
+        color: Theme.of(context).colorScheme.card,
+        border: Border.all(color: Theme.of(context).colorScheme.border),
         borderRadius: BorderRadius.circular(12),
       ),
       padding: const EdgeInsets.all(16),
@@ -233,7 +124,8 @@ class KanbanColumnItem extends ConsumerWidget {
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).colorScheme.card,
+        border: Border.all(color: Theme.of(context).colorScheme.border),
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
@@ -284,4 +176,123 @@ class KanbanColumnItem extends ConsumerWidget {
       ],
     );
   }
+}
+
+final kanbanProvider =
+    NotifierProvider<KanbanNotifier, List<SortableData<KanbanColumnData>>>(
+      KanbanNotifier.new,
+    );
+
+class KanbanNotifier extends Notifier<List<SortableData<KanbanColumnData>>> {
+  @override
+  List<SortableData<KanbanColumnData>> build() {
+    return [
+      SortableData(
+        KanbanColumnData(
+          id: "1",
+          title: "To Do",
+          tasks: [
+            SortableData(
+              KanbanTaskData(
+                id: "1",
+                title: "Competitor Spatial Analysis",
+                description:
+                    "Benchmarking the ease of movement in competing architect platforms.",
+                priority: "High",
+                color: Colors.red,
+              ),
+            ),
+            SortableData(
+              KanbanTaskData(
+                id: "2",
+                title: "V3 Iconography Pack",
+                description:
+                    "Exporting all stroke-based icons for the new shadcn library.",
+                priority: "Medium",
+                color: Colors.orange,
+              ),
+            ),
+          ],
+        ),
+      ),
+      SortableData(
+        KanbanColumnData(
+          id: "2",
+          title: "In Progress",
+          tasks: [
+            SortableData(
+              KanbanTaskData(
+                id: "3",
+                title: "Kinetic Physics Engine",
+                description:
+                    "Refining the spring animations for the dashboard cards transitions.",
+                priority: "Low",
+                color: Colors.green,
+              ),
+            ),
+          ],
+        ),
+      ),
+      SortableData(
+        KanbanColumnData(
+          id: "3",
+          title: "Review",
+          tasks: [
+            SortableData(
+              KanbanTaskData(
+                id: "4",
+                title: "Auth Flow Refactor",
+                description:
+                    "Security audit and 2FA implementation for enterprise users.",
+                priority: "High",
+                color: Colors.red,
+              ),
+            ),
+          ],
+        ),
+      ),
+    ];
+  }
+
+  void addTask() {}
+
+  void editTask() {}
+
+  void deleteTask() {}
+
+  void moveTask(
+    SortableData<KanbanTaskData> task,
+    int targetColumnIndex,
+    int targetTaskIndex,
+  ) {
+    final columns = [...state];
+
+    SortableData<KanbanTaskData>? removedTask;
+
+    for (var column in columns) {
+      final index = column.data.tasks.indexWhere((t) => t == task);
+      if (index != -1) {
+        removedTask = column.data.tasks.removeAt(index);
+        break;
+      }
+    }
+
+    if (removedTask == null) return;
+
+    final targetColumn = columns[targetColumnIndex];
+
+    if (targetTaskIndex >= targetColumn.data.tasks.length) {
+      targetColumn.data.tasks.add(removedTask);
+    } else {
+      targetColumn.data.tasks.insert(targetTaskIndex, removedTask);
+    }
+
+    state = columns;
+  }
+
+  void addColumn() {}
+
+  void editColumn() {}
+
+  void deleteColumn() {}
 }

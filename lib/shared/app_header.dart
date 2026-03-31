@@ -1,4 +1,4 @@
-import 'package:fl_kanban/app/theme.dart';
+import 'package:fl_kanban/providers/theme_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:go_router/go_router.dart';
@@ -11,7 +11,6 @@ class AppHeader extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final themeMode = ref.watch(themeProvider);
-    final notifier = ref.read(themeProvider.notifier);
 
     return AppBar(
       leading: showBackButton
@@ -58,7 +57,9 @@ class AppHeader extends ConsumerWidget {
         ),
         gap(8),
         IconButton.ghost(
-          onPressed: notifier.toggle,
+          onPressed: () {
+            ref.read(themeProvider.notifier).toggle();
+          },
           icon: Icon(
             themeMode == ThemeMode.dark ? LucideIcons.sun : LucideIcons.moon,
             size: 16,
