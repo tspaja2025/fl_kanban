@@ -16,9 +16,7 @@ class AppHeader extends ConsumerWidget {
       leading: showBackButton
           ? [
               IconButton.outline(
-                onPressed: () {
-                  context.pop();
-                },
+                onPressed: () => context.pop(),
                 icon: const Icon(LucideIcons.chevronLeft, size: 16),
               ),
             ]
@@ -35,11 +33,9 @@ class AppHeader extends ConsumerWidget {
                 StatedWidget.builder(
                   builder: (context, states) {
                     // Use a muted icon normally, switch to the full icon on hover
-                    if (states.hovered) {
-                      return const Icon(Icons.search);
-                    } else {
-                      return const Icon(Icons.search).iconMutedForeground();
-                    }
+                    return states.hovered
+                        ? const Icon(LucideIcons.search)
+                        : const Icon(LucideIcons.search).iconMutedForeground;
                   },
                 ),
                 visibility: InputFeatureVisibility.textEmpty,
@@ -55,11 +51,9 @@ class AppHeader extends ConsumerWidget {
             ],
           ),
         ),
-        gap(8),
+        const Gap(8),
         IconButton.ghost(
-          onPressed: () {
-            ref.read(themeProvider.notifier).toggle();
-          },
+          onPressed: () => ref.read(themeProvider.notifier).toggle(),
           icon: Icon(
             themeMode == ThemeMode.dark ? LucideIcons.sun : LucideIcons.moon,
             size: 16,

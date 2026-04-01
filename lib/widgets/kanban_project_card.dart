@@ -64,26 +64,28 @@ class _KanbanProjectCard extends ConsumerState<KanbanProjectCard> {
         Builder(
           builder: (context) {
             return IconButton.ghost(
-              onPressed: () {
-                showDropdown(
-                  context: context,
-                  builder: (context) {
-                    return const DropdownMenu(
-                      children: [
-                        MenuLabel(child: Text("Actions")),
-                        MenuDivider(),
-                        MenuButton(child: Text("Edit")),
-                        MenuButton(child: Text("Delete")),
-                      ],
-                    );
-                  },
-                );
-              },
+              onPressed: () => _showProjectMenu(context),
               icon: const Icon(LucideIcons.ellipsis, size: 16),
             );
           },
         ),
       ],
+    );
+  }
+
+  void _showProjectMenu(BuildContext context) {
+    showDropdown(
+      context: context,
+      builder: (context) {
+        return const DropdownMenu(
+          children: [
+            MenuLabel(child: Text("Actions")),
+            MenuDivider(),
+            MenuButton(child: Text("Edit")),
+            MenuButton(child: Text("Delete")),
+          ],
+        );
+      },
     );
   }
 }
