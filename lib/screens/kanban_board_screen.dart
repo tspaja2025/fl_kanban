@@ -15,6 +15,8 @@ class KanbanBoardScreen extends ConsumerStatefulWidget {
 }
 
 class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> {
+  String? selectedValue;
+
   @override
   Widget build(BuildContext context) {
     final projects = ref.watch(kanbanProvider);
@@ -26,45 +28,85 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> {
     final notifier = ref.read(kanbanProvider.notifier);
     final ScrollController scrollController = ScrollController();
 
-    return Scrollbar(
-      controller: scrollController,
-      thumbVisibility: true,
-      trackVisibility: true,
-      interactive: true,
-      child: SingleChildScrollView(
-        controller: scrollController,
-        scrollDirection: Axis.horizontal,
-        child: SortableLayer(
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              for (int i = 0; i < columns.length; i++)
-                KanbanColumn(
-                  key: ValueKey(columns[i].data.id),
-                  projectId: widget.projectId,
-                  column: columns[i],
-                  columnIndex: i,
-                  onMoveTask: notifier.moveTask,
-                ),
-              KanbanColumnEmpty(
-                projectId: widget.projectId,
-                onAddColumn: (title) {
-                  notifier.addColumn(
-                    widget.projectId,
-                    KanbanColumnData(
-                      id: DateTime.now().millisecondsSinceEpoch.toString(),
-                      title: title,
-                      tasks: [],
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: [
+            SizedBox(
+              width: 250,
+              child: TextField(
+                placeholder: const Text("Search tasks"),
+                features: [
+                  // Leading icon only visible when the text is empty
+                  InputFeature.leading(
+                    StatedWidget.builder(
+                      builder: (context, states) {
+                        // Use a muted icon normally, switch to the full icon on hover
+                        return states.hovered
+                            ? const Icon(LucideIcons.search)
+                            : const Icon(
+                                LucideIcons.search,
+                              ).iconMutedForeground;
+                      },
                     ),
-                  );
-                },
+                    visibility: InputFeatureVisibility.textEmpty,
+                  ),
+                  // Clear button visible when there is text and the field is focused,
+                  // or whenever the field is hovered
+                  InputFeature.clear(
+                    visibility:
+                        (InputFeatureVisibility.textNotEmpty &
+                            InputFeatureVisibility.focused) |
+                        InputFeatureVisibility.hovered,
+                  ),
+                ],
               ),
-            ],
-          ).gap(KanbanConstants.gapSize),
+            ),
+          ],
+        ).gap(16),
+        Scrollbar(
+          controller: scrollController,
+          thumbVisibility: true,
+          trackVisibility: true,
+          interactive: true,
+          child: SingleChildScrollView(
+            controller: scrollController,
+            scrollDirection: Axis.horizontal,
+            child: SortableLayer(
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  for (int i = 0; i < columns.length; i++)
+                    KanbanColumn(
+                      key: ValueKey(columns[i].data.id),
+                      projectId: widget.projectId,
+                      column: columns[i],
+                      columnIndex: i,
+                      onMoveTask: notifier.moveTask,
+                    ),
+                  KanbanColumnEmpty(
+                    projectId: widget.projectId,
+                    onAddColumn: (title) {
+                      notifier.addColumn(
+                        widget.projectId,
+                        KanbanColumnData(
+                          id: DateTime.now().millisecondsSinceEpoch.toString(),
+                          title: title,
+                          tasks: [],
+                        ),
+                      );
+                    },
+                  ),
+                ],
+              ).gap(KanbanConstants.gapSize),
+            ),
+          ),
         ),
-      ),
-    );
+      ],
+    ).gap(16);
   }
 }
 
@@ -91,6 +133,7 @@ class _KanbanColumnState extends ConsumerState<KanbanColumn> {
   Widget build(BuildContext context) {
     return Container(
       width: KanbanConstants.columnWidth,
+      height: MediaQuery.of(context).size.height - 140,
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.card,
         border: Border.all(color: Theme.of(context).colorScheme.border),
@@ -150,21 +193,21 @@ class _KanbanColumnState extends ConsumerState<KanbanColumn> {
             const MenuLabel(child: Text("Actions")),
             const MenuDivider(),
             MenuButton(
-              onPressed: (context) {
+              onPressed: (_) {
                 _showNewTaskDialog(context);
                 Navigator.pop(context);
               },
               child: const Text("Add Task"),
             ),
             MenuButton(
-              onPressed: (context) {
+              onPressed: (_) {
                 _showEditColumnDialog(context);
                 Navigator.pop(context);
               },
               child: const Text("Edit Column"),
             ),
             MenuButton(
-              onPressed: (context) {
+              onPressed: (_) {
                 notifier.deleteColumn(widget.projectId, widget.column.data.id);
                 Navigator.pop(context);
               },

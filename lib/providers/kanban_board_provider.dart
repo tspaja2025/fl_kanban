@@ -7,6 +7,24 @@ final kanbanProvider = NotifierProvider<KanbanNotifier, List<KanbanData>>(
 );
 
 class KanbanNotifier extends Notifier<List<KanbanData>> {
+  String _searchQuery = '';
+
+  // Add getter for search query
+  String get searchQuery => _searchQuery;
+
+  // Add filtered projects getter
+  List<KanbanData> get filteredProjects {
+    if (_searchQuery.isEmpty) {
+      return state;
+    }
+
+    final query = _searchQuery.trim().toLowerCase();
+    return state.where((project) {
+      return project.title.toLowerCase().contains(query) ||
+          project.description.toLowerCase().contains(query);
+    }).toList();
+  }
+
   @override
   List<KanbanData> build() {
     return [
@@ -83,6 +101,11 @@ class KanbanNotifier extends Notifier<List<KanbanData>> {
         ],
       ),
     ];
+  }
+
+  void updateSearchQuery(String query) {
+    _searchQuery = query;
+    state = [...state];
   }
 
   void moveTask(

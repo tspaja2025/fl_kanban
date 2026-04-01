@@ -12,11 +12,58 @@ class KanbanProjectScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final boards = ref.watch(kanbanProvider);
+    final projects = ref.watch(kanbanProvider);
+    final notifier = ref.read(kanbanProvider.notifier);
+
+    final boards = notifier.searchQuery.isEmpty
+        ? projects
+        : projects.where((project) {
+            final query = notifier.searchQuery.toLowerCase();
+            return project.title.toLowerCase().contains(query) ||
+                project.description.toLowerCase().contains(query);
+          }).toList();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: [
+            SizedBox(
+              width: 250,
+              child: TextField(
+                placeholder: const Text("Search projects"),
+                onChanged: (value) {
+                  ref.read(kanbanProvider.notifier).updateSearchQuery(value);
+                },
+                features: [
+                  // Leading icon only visible when the text is empty
+                  InputFeature.leading(
+                    StatedWidget.builder(
+                      builder: (context, states) {
+                        // Use a muted icon normally, switch to the full icon on hover
+                        return states.hovered
+                            ? const Icon(LucideIcons.search)
+                            : const Icon(
+                                LucideIcons.search,
+                              ).iconMutedForeground;
+                      },
+                    ),
+                    visibility: InputFeatureVisibility.textEmpty,
+                  ),
+                  // Clear button visible when there is text and the field is focused,
+                  // or whenever the field is hovered
+                  InputFeature.clear(
+                    visibility:
+                        (InputFeatureVisibility.textNotEmpty &
+                            InputFeatureVisibility.focused) |
+                        InputFeatureVisibility.hovered,
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
         Wrap(
           spacing: KanbanConstants.gapSize,
           runSpacing: KanbanConstants.gapSize,
@@ -36,7 +83,7 @@ class KanbanProjectScreen extends ConsumerWidget {
           ],
         ),
       ],
-    );
+    ).gap(16);
   }
 
   void _showNewProjectDialog(BuildContext context, WidgetRef ref) {

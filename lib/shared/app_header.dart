@@ -23,35 +23,6 @@ class AppHeader extends ConsumerWidget {
           : [],
       title: const Text("Kanban Board"),
       trailing: [
-        SizedBox(
-          width: 250,
-          child: TextField(
-            placeholder: const Text("Search"),
-            features: [
-              // Leading icon only visible when the text is empty
-              InputFeature.leading(
-                StatedWidget.builder(
-                  builder: (context, states) {
-                    // Use a muted icon normally, switch to the full icon on hover
-                    return states.hovered
-                        ? const Icon(LucideIcons.search)
-                        : const Icon(LucideIcons.search).iconMutedForeground;
-                  },
-                ),
-                visibility: InputFeatureVisibility.textEmpty,
-              ),
-              // Clear button visible when there is text and the field is focused,
-              // or whenever the field is hovered
-              InputFeature.clear(
-                visibility:
-                    (InputFeatureVisibility.textNotEmpty &
-                        InputFeatureVisibility.focused) |
-                    InputFeatureVisibility.hovered,
-              ),
-            ],
-          ),
-        ),
-        const Gap(8),
         IconButton.ghost(
           onPressed: () => ref.read(themeProvider.notifier).toggle(),
           icon: Icon(
