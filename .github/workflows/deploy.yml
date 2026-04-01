@@ -1,0 +1,43 @@
+name: Deploy Flutter Web to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  build-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+          cache-key: flutter-${{ runner.os }}-${{ hashFiles('pubspec.lock') }}
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Verify Flutter installation
+        run: flutter doctor -v
+
+      - name: Build web
+        run: flutter build web --wasm --release --base-href "/${{ github.event.repository.name }}/"
+        # Replace REPOSITORY_NAME with your actual repository name
+        # or use: --base-href "/${{ github.event.repository.name }}/"
+
+      - name: Add .nojekyll
+        run: touch build/web/.nojekyll
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GH_FLKANBAN }}
+          publish_dir: ./build/web
+          publish_branch: gh-pages
+          # Optional: uncomment if you want to keep the deployment history
+          # force_orphan: true
