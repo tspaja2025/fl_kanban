@@ -7,23 +7,11 @@ final kanbanProvider = NotifierProvider<KanbanNotifier, List<KanbanData>>(
 );
 
 class KanbanNotifier extends Notifier<List<KanbanData>> {
-  String _searchQuery = '';
+  String _searchQuery = "";
+  String _taskSearchQuery = "";
 
-  // Add getter for search query
   String get searchQuery => _searchQuery;
-
-  // Add filtered projects getter
-  List<KanbanData> get filteredProjects {
-    if (_searchQuery.isEmpty) {
-      return state;
-    }
-
-    final query = _searchQuery.trim().toLowerCase();
-    return state.where((project) {
-      return project.title.toLowerCase().contains(query) ||
-          project.description.toLowerCase().contains(query);
-    }).toList();
-  }
+  String get taskSearchQuery => _taskSearchQuery;
 
   @override
   List<KanbanData> build() {
@@ -47,6 +35,7 @@ class KanbanNotifier extends Notifier<List<KanbanData>> {
                         "Benchmarking the ease of movement in competing architect platforms.",
                     priority: TaskPriority.high,
                     color: Colors.red,
+                    dueDate: DateTime(2026, 4, 10),
                   ),
                 ),
                 SortableData(
@@ -57,6 +46,7 @@ class KanbanNotifier extends Notifier<List<KanbanData>> {
                         "Exporting all stroke-based icons for the new shadcn library.",
                     priority: TaskPriority.medium,
                     color: Colors.orange,
+                    dueDate: DateTime(2026, 4, 10),
                   ),
                 ),
               ],
@@ -75,6 +65,7 @@ class KanbanNotifier extends Notifier<List<KanbanData>> {
                         "Refining the spring animations for the dashboard cards transitions.",
                     priority: TaskPriority.low,
                     color: Colors.green,
+                    dueDate: DateTime(2026, 4, 10),
                   ),
                 ),
               ],
@@ -93,6 +84,7 @@ class KanbanNotifier extends Notifier<List<KanbanData>> {
                         "Security audit and 2FA implementation for enterprise users.",
                     priority: TaskPriority.high,
                     color: Colors.red,
+                    dueDate: DateTime(2026, 4, 10),
                   ),
                 ),
               ],
@@ -103,8 +95,46 @@ class KanbanNotifier extends Notifier<List<KanbanData>> {
     ];
   }
 
+  // Filtered projects getter
+  List<KanbanData> get filteredProjects {
+    if (_searchQuery.isEmpty) {
+      return state;
+    }
+
+    final query = _searchQuery.trim().toLowerCase();
+    return state.where((project) {
+      return project.title.toLowerCase().contains(query) ||
+          project.description.toLowerCase().contains(query);
+    }).toList();
+  }
+
+  List<SortableData<KanbanColumnData>> getFilteredColumns(String projectId) {
+    final project = state.firstWhere((p) => p.id == projectId);
+
+    if (_taskSearchQuery.isEmpty) {
+      return project.columns;
+    }
+
+    final query = _taskSearchQuery.trim().toLowerCase();
+
+    // Filter tasks in each column
+    return project.columns.map((column) {
+      final filteredTasks = column.data.tasks.where((task) {
+        return task.data.title.toLowerCase().contains(query) ||
+            task.data.description.toLowerCase().contains(query);
+      }).toList();
+
+      return SortableData(column.data.copyWith(tasks: filteredTasks));
+    }).toList();
+  }
+
   void updateSearchQuery(String query) {
     _searchQuery = query;
+    state = [...state];
+  }
+
+  void updateTaskSearchQuery(String query) {
+    _taskSearchQuery = query;
     state = [...state];
   }
 
@@ -275,6 +305,18 @@ class KanbanNotifier extends Notifier<List<KanbanData>> {
       projects[projectIndex].columns,
     );
     columns.removeWhere((c) => c.data.id == columnId);
+
+    if (columns.isEmpty) {
+      columns.add(
+        SortableData(
+          KanbanColumnData(
+            id: DateTime.now().millisecondsSinceEpoch.toString(),
+            title: "To Do",
+            tasks: [],
+          ),
+        ),
+      );
+    }
 
     state = [
       ...projects.take(projectIndex),

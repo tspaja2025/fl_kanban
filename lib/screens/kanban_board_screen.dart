@@ -16,6 +16,13 @@ class KanbanBoardScreen extends ConsumerStatefulWidget {
 
 class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> {
   String? selectedValue;
+  final TextEditingController _taskSearchController = TextEditingController();
+
+  @override
+  void dispose() {
+    _taskSearchController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -24,7 +31,10 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> {
       (project) => project.id == widget.projectId,
       orElse: () => projects.first,
     );
-    final columns = currentProject.columns;
+    final filteredColumns = ref
+        .read(kanbanProvider.notifier)
+        .getFilteredColumns(widget.projectId);
+
     final notifier = ref.read(kanbanProvider.notifier);
     final ScrollController scrollController = ScrollController();
 
@@ -32,12 +42,42 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Row(
-          mainAxisAlignment: MainAxisAlignment.end,
           children: [
+            if (_taskSearchController.text.isNotEmpty)
+              Container(
+                width: 250,
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.card,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(LucideIcons.search, size: 16),
+                    const Gap(8),
+                    Text(
+                      'Showing tasks matching: "${_taskSearchController.text}"',
+                    ).small,
+                    const Spacer(),
+                    TextButton(
+                      onPressed: () {
+                        _taskSearchController.clear();
+                        notifier.updateTaskSearchQuery('');
+                      },
+                      child: const Text("Clear"),
+                    ),
+                  ],
+                ),
+              ),
+            const Spacer(),
             SizedBox(
               width: 250,
               child: TextField(
+                controller: _taskSearchController,
                 placeholder: const Text("Search tasks"),
+                onChanged: (value) {
+                  notifier.updateTaskSearchQuery(value);
+                },
                 features: [
                   // Leading icon only visible when the text is empty
                   InputFeature.leading(
@@ -66,6 +106,7 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> {
             ),
           ],
         ).gap(16),
+
         Scrollbar(
           controller: scrollController,
           thumbVisibility: true,
@@ -79,27 +120,30 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  for (int i = 0; i < columns.length; i++)
+                  for (int i = 0; i < filteredColumns.length; i++)
                     KanbanColumn(
-                      key: ValueKey(columns[i].data.id),
+                      key: ValueKey(filteredColumns[i].data.id),
                       projectId: widget.projectId,
-                      column: columns[i],
+                      column: filteredColumns[i],
                       columnIndex: i,
                       onMoveTask: notifier.moveTask,
+                      isSearchActive: _taskSearchController.text.isNotEmpty,
                     ),
-                  KanbanColumnEmpty(
-                    projectId: widget.projectId,
-                    onAddColumn: (title) {
-                      notifier.addColumn(
-                        widget.projectId,
-                        KanbanColumnData(
-                          id: DateTime.now().millisecondsSinceEpoch.toString(),
-                          title: title,
-                          tasks: [],
-                        ),
-                      );
-                    },
-                  ),
+                  if (_taskSearchController.text.isEmpty)
+                    KanbanColumnEmpty(
+                      projectId: widget.projectId,
+                      onAddColumn: (title) {
+                        notifier.addColumn(
+                          widget.projectId,
+                          KanbanColumnData(
+                            id: DateTime.now().millisecondsSinceEpoch
+                                .toString(),
+                            title: title,
+                            tasks: [],
+                          ),
+                        );
+                      },
+                    ),
                 ],
               ).gap(KanbanConstants.gapSize),
             ),
@@ -115,6 +159,7 @@ class KanbanColumn extends ConsumerStatefulWidget {
   final SortableData<KanbanColumnData> column;
   final int columnIndex;
   final void Function(SortableData<KanbanTaskData>, int, int) onMoveTask;
+  final bool isSearchActive;
 
   const KanbanColumn({
     super.key,
@@ -122,6 +167,7 @@ class KanbanColumn extends ConsumerStatefulWidget {
     required this.column,
     required this.columnIndex,
     required this.onMoveTask,
+    this.isSearchActive = false,
   });
 
   @override
@@ -131,33 +177,49 @@ class KanbanColumn extends ConsumerStatefulWidget {
 class _KanbanColumnState extends ConsumerState<KanbanColumn> {
   @override
   Widget build(BuildContext context) {
+    final hasSearchResults =
+        widget.isSearchActive && widget.column.data.tasks.isNotEmpty;
+
     return Container(
       width: KanbanConstants.columnWidth,
-      height: MediaQuery.of(context).size.height - 140,
+      height: widget.isSearchActive
+          ? MediaQuery.of(context).size.height - 155
+          : MediaQuery.of(context).size.height - 140,
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.card,
-        border: Border.all(color: Theme.of(context).colorScheme.border),
+        border: Border.all(
+          color: hasSearchResults
+              ? Theme.of(context).colorScheme.primary
+              : Theme.of(context).colorScheme.border,
+          width: hasSearchResults ? 2 : 1,
+        ),
         borderRadius: BorderRadius.circular(KanbanConstants.borderRadius),
       ),
       padding: const EdgeInsets.all(KanbanConstants.columnPadding),
       child: SortableDropFallback<KanbanTaskData>(
-        onAccept: (value) {
-          widget.onMoveTask(
-            value,
-            widget.columnIndex,
-            widget.column.data.tasks.length,
-          );
-        },
+        onAccept: widget.isSearchActive
+            ? null
+            : (value) {
+                widget.onMoveTask(
+                  value,
+                  widget.columnIndex,
+                  widget.column.data.tasks.length,
+                );
+              },
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             _buildColumnHeader(),
-            ..._buildTaskList(),
-            PrimaryButton(
-              onPressed: () => _showNewTaskDialog(context),
-              alignment: Alignment.center,
-              child: const Text("New Task"),
-            ),
+            if (widget.isSearchActive && widget.column.data.tasks.isEmpty)
+              Expanded(child: Center(child: Text("No matching tasks").muted))
+            else
+              ..._buildTaskList(),
+            if (!widget.isSearchActive)
+              PrimaryButton(
+                onPressed: () => _showNewTaskDialog(context),
+                alignment: Alignment.center,
+                child: const Text("New Task"),
+              ),
           ],
         ).gap(KanbanConstants.gapSize),
       ),
@@ -195,21 +257,18 @@ class _KanbanColumnState extends ConsumerState<KanbanColumn> {
             MenuButton(
               onPressed: (_) {
                 _showNewTaskDialog(context);
-                Navigator.pop(context);
               },
               child: const Text("Add Task"),
             ),
             MenuButton(
               onPressed: (_) {
                 _showEditColumnDialog(context);
-                Navigator.pop(context);
               },
               child: const Text("Edit Column"),
             ),
             MenuButton(
               onPressed: (_) {
                 notifier.deleteColumn(widget.projectId, widget.column.data.id);
-                Navigator.pop(context);
               },
               child: const Text("Delete Column"),
             ),
@@ -290,10 +349,14 @@ class _KanbanColumnState extends ConsumerState<KanbanColumn> {
           widget.onMoveTask(value, widget.columnIndex, taskIndex + 1);
         },
         child: KanbanColumnItem(
+          projectId: widget.projectId,
+          columnId: widget.column.data.id,
+          taskId: task.data.id,
           title: task.data.title,
           description: task.data.description,
           priority: task.data.priority,
           color: task.data.effectiveColor,
+          dueDate: task.data.dueDate,
         ),
       );
     });
@@ -358,6 +421,7 @@ class _NewTaskDialogState extends ConsumerState<NewTaskDialog> {
                 title: title,
                 description: description,
                 priority: selectedPriority ?? TaskPriority.medium,
+                dueDate: dueDate,
               );
 
               notifier.addTask(widget.projectId, widget.columnId, newTask);
@@ -445,11 +509,6 @@ class NewTaskForm extends ConsumerWidget {
           DatePicker(
             value: dueDate,
             mode: PromptMode.popover,
-            stateBuilder: (date) {
-              return date.isAfter(DateTime.now())
-                  ? DateState.disabled
-                  : DateState.enabled;
-            },
             onChanged: onDueDateChanged,
           ),
         ],
@@ -515,7 +574,7 @@ class DueDateFormField extends ConsumerWidget {
         value: value,
         mode: PromptMode.popover,
         stateBuilder: (date) {
-          return date.isAfter(DateTime.now())
+          return date.isBefore(DateTime.now().subtract(const Duration(days: 1)))
               ? DateState.disabled
               : DateState.enabled;
         },
@@ -605,17 +664,25 @@ class KanbanColumnEmpty extends ConsumerWidget {
 }
 
 class KanbanColumnItem extends ConsumerWidget {
+  final String projectId;
+  final String columnId;
+  final String taskId;
   final String title;
   final String description;
   final TaskPriority priority;
   final Color color;
+  final DateTime? dueDate;
 
   const KanbanColumnItem({
     super.key,
+    required this.projectId,
+    required this.columnId,
+    required this.taskId,
     required this.title,
     required this.description,
     required this.priority,
     required this.color,
+    this.dueDate,
   });
 
   @override
@@ -642,24 +709,150 @@ class KanbanColumnItem extends ConsumerWidget {
             children: [
               Text(title).semiBold,
               const Spacer(),
-              Badge(child: priority.displayName, color: color),
+              Builder(
+                builder: (context) {
+                  return IconButton.ghost(
+                    onPressed: () {
+                      showDropdown(
+                        context: context,
+                        builder: (context) {
+                          return DropdownMenu(
+                            children: [
+                              MenuLabel(child: const Text("Actions")),
+                              MenuDivider(),
+                              MenuButton(
+                                onPressed: (_) {
+                                  _showEditTaskDialog(context, ref);
+                                },
+                                child: const Text("Edit"),
+                              ),
+                              MenuButton(
+                                onPressed: (_) {
+                                  _showDeleteTaskDialog(context, ref);
+                                },
+                                child: const Text("Delete"),
+                              ),
+                            ],
+                          );
+                        },
+                      );
+                    },
+                    icon: const Icon(LucideIcons.ellipsis, size: 16),
+                  );
+                },
+              ),
             ],
           ),
           const Gap(KanbanConstants.gapSize),
           Text(description),
           const Gap(KanbanConstants.gapSize),
-          _buildFooter(),
+          _buildFooter(context),
         ],
       ),
     );
   }
 
-  Widget _buildFooter() {
+  void _showEditTaskDialog(BuildContext context, WidgetRef ref) {
+    final titleController = TextEditingController(text: title);
+    final descriptionController = TextEditingController(text: description);
+    TaskPriority? selectedPriority = priority;
+    DateTime? dueDate;
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text("Edit Task"),
+          content: NewTaskForm(
+            titleController: titleController,
+            descriptionController: descriptionController,
+            selectedPriority: selectedPriority,
+            dueDate: dueDate,
+            onPriorityChanged: (priority) => selectedPriority = priority,
+            onDueDateChanged: (date) => dueDate = date,
+          ),
+          actions: [
+            OutlineButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text("Cancel"),
+            ),
+            PrimaryButton(
+              onPressed: () {
+                final newTitle = titleController.text.trim();
+                final newDescription = descriptionController.text.trim();
+
+                if (newTitle.isNotEmpty) {
+                  final notifier = ref.read(kanbanProvider.notifier);
+
+                  final updatedTask = KanbanTaskData(
+                    id: taskId,
+                    title: newTitle,
+                    description: newDescription,
+                    priority: selectedPriority ?? TaskPriority.medium,
+                    dueDate: dueDate,
+                  );
+
+                  notifier.editTask(projectId, columnId, taskId, updatedTask);
+                  Navigator.pop(context);
+                }
+              },
+              child: const Text("Save"),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showDeleteTaskDialog(BuildContext context, WidgetRef ref) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text("Delete Task"),
+          content: const Text("Are you sure you want to delete this task?"),
+          actions: [
+            OutlineButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text("Cancel"),
+            ),
+            PrimaryButton(
+              onPressed: () {
+                final notifier = ref.read(kanbanProvider.notifier);
+                notifier.deleteTask(projectId, columnId, taskId);
+                Navigator.pop(context);
+              },
+              child: const Text("Delete"),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildFooter(BuildContext context) {
+    String dueDateText = "";
+
+    if (dueDate != null) {
+      dueDateText = "${dueDate!.month}/${dueDate!.day}";
+    } else {
+      dueDateText = "No Date";
+    }
+
+    final isOverdue = dueDate != null && dueDate!.isBefore(DateTime.now());
+
     return Row(
       children: [
         const Icon(LucideIcons.calendar, size: 16),
         const Gap(8),
-        const Text("Mar 21"),
+        Text(
+          dueDateText,
+          style: isOverdue
+              ? TextStyle(color: Theme.of(context).colorScheme.destructive)
+              : null,
+        ),
+        const Gap(8),
+        Badge(child: priority.displayName, color: color),
         const Spacer(),
         Avatar(
           size: 24,

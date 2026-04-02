@@ -1,13 +1,16 @@
+import 'package:fl_kanban/providers/kanban_board_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 class KanbanProjectCard extends ConsumerStatefulWidget {
+  final String projectId;
   final VoidCallback onTap;
   final String title;
   final String description;
 
   const KanbanProjectCard({
     super.key,
+    required this.projectId,
     required this.onTap,
     required this.title,
     required this.description,
@@ -74,15 +77,22 @@ class _KanbanProjectCard extends ConsumerState<KanbanProjectCard> {
   }
 
   void _showProjectMenu(BuildContext context) {
+    final notifier = ref.read(kanbanProvider.notifier);
+
     showDropdown(
       context: context,
       builder: (context) {
-        return const DropdownMenu(
+        return DropdownMenu(
           children: [
-            MenuLabel(child: Text("Actions")),
+            MenuLabel(child: const Text("Actions")),
             MenuDivider(),
-            MenuButton(child: Text("Edit")),
-            MenuButton(child: Text("Delete")),
+            MenuButton(onPressed: (_) {}, child: const Text("Edit")),
+            MenuButton(
+              onPressed: (_) {
+                notifier.deleteProject(widget.projectId);
+              },
+              child: const Text("Delete"),
+            ),
           ],
         );
       },

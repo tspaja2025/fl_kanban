@@ -57,7 +57,8 @@ class KanbanTaskData {
   final String title;
   final String description;
   final TaskPriority priority;
-  final Color? color; // Optional color override
+  final Color? color;
+  final DateTime? dueDate;
 
   KanbanTaskData({
     required this.id,
@@ -65,6 +66,7 @@ class KanbanTaskData {
     required this.description,
     required this.priority,
     this.color,
+    this.dueDate,
   });
 
   KanbanTaskData copyWith({
@@ -73,6 +75,7 @@ class KanbanTaskData {
     String? description,
     TaskPriority? priority,
     Color? color,
+    DateTime? dueDate,
   }) {
     return KanbanTaskData(
       id: id ?? this.id,
@@ -80,6 +83,7 @@ class KanbanTaskData {
       description: description ?? this.description,
       priority: priority ?? this.priority,
       color: color ?? this.color,
+      dueDate: dueDate ?? this.dueDate,
     );
   }
 
