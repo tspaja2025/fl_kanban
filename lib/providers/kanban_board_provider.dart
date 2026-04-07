@@ -18,9 +18,251 @@ class KanbanNotifier extends Notifier<List<KanbanData>> {
     return [
       KanbanData(
         id: "1",
-        title: "Project Velocity",
+        title: "Alpha Redesign",
         description:
-            "System architecture and interface modeling for the Q4 kinetic engine update.",
+            "Complete overhaul of the core user interface focusing on accessbility.",
+        status: ProjectStatus.inProgress,
+        backgroundColor: const Color(0xFFE0F2FE),
+        foregroundColor: const Color(0xFF075985),
+        dueDate: "3 days left",
+        columns: [
+          SortableData(
+            KanbanColumnData(
+              id: "1",
+              title: "To Do",
+              tasks: [
+                SortableData(
+                  KanbanTaskData(
+                    id: "1",
+                    title: "Competitor Spatial Analysis",
+                    description:
+                        "Benchmarking the ease of movement in competing architect platforms.",
+                    priority: TaskPriority.high,
+                    color: Colors.red,
+                    dueDate: DateTime(2026, 4, 10),
+                  ),
+                ),
+                SortableData(
+                  KanbanTaskData(
+                    id: "2",
+                    title: "V3 Iconography Pack",
+                    description:
+                        "Exporting all stroke-based icons for the new shadcn library.",
+                    priority: TaskPriority.medium,
+                    color: Colors.orange,
+                    dueDate: DateTime(2026, 4, 10),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          SortableData(
+            KanbanColumnData(
+              id: "2",
+              title: "In Progress",
+              tasks: [
+                SortableData(
+                  KanbanTaskData(
+                    id: "3",
+                    title: "Kinetic Physics Engine",
+                    description:
+                        "Refining the spring animations for the dashboard cards transitions.",
+                    priority: TaskPriority.low,
+                    color: Colors.green,
+                    dueDate: DateTime(2026, 4, 10),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          SortableData(
+            KanbanColumnData(
+              id: "3",
+              title: "Review",
+              tasks: [
+                SortableData(
+                  KanbanTaskData(
+                    id: "4",
+                    title: "Auth Flow Refactor",
+                    description:
+                        "Security audit and 2FA implementation for enterprise users.",
+                    priority: TaskPriority.high,
+                    color: Colors.red,
+                    dueDate: DateTime(2026, 4, 10),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+      KanbanData(
+        id: "2",
+        title: "Q3 Marketing Site",
+        description: "Brand expansion for the new enterprise tier launch.",
+        status: ProjectStatus.completed,
+        backgroundColor: Color(0xFFDCFCE7),
+        foregroundColor: Color(0xFF166534),
+        dueDate: "3 days left",
+        columns: [
+          SortableData(
+            KanbanColumnData(
+              id: "1",
+              title: "To Do",
+              tasks: [
+                SortableData(
+                  KanbanTaskData(
+                    id: "1",
+                    title: "Competitor Spatial Analysis",
+                    description:
+                        "Benchmarking the ease of movement in competing architect platforms.",
+                    priority: TaskPriority.high,
+                    color: Colors.red,
+                    dueDate: DateTime(2026, 4, 10),
+                  ),
+                ),
+                SortableData(
+                  KanbanTaskData(
+                    id: "2",
+                    title: "V3 Iconography Pack",
+                    description:
+                        "Exporting all stroke-based icons for the new shadcn library.",
+                    priority: TaskPriority.medium,
+                    color: Colors.orange,
+                    dueDate: DateTime(2026, 4, 10),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          SortableData(
+            KanbanColumnData(
+              id: "2",
+              title: "In Progress",
+              tasks: [
+                SortableData(
+                  KanbanTaskData(
+                    id: "3",
+                    title: "Kinetic Physics Engine",
+                    description:
+                        "Refining the spring animations for the dashboard cards transitions.",
+                    priority: TaskPriority.low,
+                    color: Colors.green,
+                    dueDate: DateTime(2026, 4, 10),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          SortableData(
+            KanbanColumnData(
+              id: "3",
+              title: "Review",
+              tasks: [
+                SortableData(
+                  KanbanTaskData(
+                    id: "4",
+                    title: "Auth Flow Refactor",
+                    description:
+                        "Security audit and 2FA implementation for enterprise users.",
+                    priority: TaskPriority.high,
+                    color: Colors.red,
+                    dueDate: DateTime(2026, 4, 10),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+      KanbanData(
+        id: "3",
+        title: "API Documentation",
+        description: "Developing a new Swagger-based documentation system.",
+        status: ProjectStatus.delayed,
+        backgroundColor: Color(0xFFFEE2E2),
+        foregroundColor: Color(0xFF991B1B),
+        dueDate: "3 days left",
+        columns: [
+          SortableData(
+            KanbanColumnData(
+              id: "1",
+              title: "To Do",
+              tasks: [
+                SortableData(
+                  KanbanTaskData(
+                    id: "1",
+                    title: "Competitor Spatial Analysis",
+                    description:
+                        "Benchmarking the ease of movement in competing architect platforms.",
+                    priority: TaskPriority.high,
+                    color: Colors.red,
+                    dueDate: DateTime(2026, 4, 10),
+                  ),
+                ),
+                SortableData(
+                  KanbanTaskData(
+                    id: "2",
+                    title: "V3 Iconography Pack",
+                    description:
+                        "Exporting all stroke-based icons for the new shadcn library.",
+                    priority: TaskPriority.medium,
+                    color: Colors.orange,
+                    dueDate: DateTime(2026, 4, 10),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          SortableData(
+            KanbanColumnData(
+              id: "2",
+              title: "In Progress",
+              tasks: [
+                SortableData(
+                  KanbanTaskData(
+                    id: "3",
+                    title: "Kinetic Physics Engine",
+                    description:
+                        "Refining the spring animations for the dashboard cards transitions.",
+                    priority: TaskPriority.low,
+                    color: Colors.green,
+                    dueDate: DateTime(2026, 4, 10),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          SortableData(
+            KanbanColumnData(
+              id: "3",
+              title: "Review",
+              tasks: [
+                SortableData(
+                  KanbanTaskData(
+                    id: "4",
+                    title: "Auth Flow Refactor",
+                    description:
+                        "Security audit and 2FA implementation for enterprise users.",
+                    priority: TaskPriority.high,
+                    color: Colors.red,
+                    dueDate: DateTime(2026, 4, 10),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+      KanbanData(
+        id: "4",
+        title: "Security Audit",
+        description:
+            "Quarterly review of our infastructure and data encryption.",
+        status: ProjectStatus.inProgress,
+        backgroundColor: const Color(0xFFE0F2FE),
+        foregroundColor: const Color(0xFF075985),
+        dueDate: "3 days left",
         columns: [
           SortableData(
             KanbanColumnData(
@@ -95,7 +337,6 @@ class KanbanNotifier extends Notifier<List<KanbanData>> {
     ];
   }
 
-  // Filtered projects getter
   List<KanbanData> get filteredProjects {
     if (_searchQuery.isEmpty) {
       return state;

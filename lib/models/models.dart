@@ -4,12 +4,20 @@ class KanbanData {
   final String id;
   final String title;
   final String description;
+  final ProjectStatus status;
+  final Color backgroundColor;
+  final Color foregroundColor;
+  final String dueDate;
   final List<SortableData<KanbanColumnData>> columns;
 
   const KanbanData({
     required this.id,
     required this.title,
     required this.description,
+    required this.status,
+    this.backgroundColor = const Color(0xFFE0F2FE),
+    this.foregroundColor = const Color(0xFF075985),
+    required this.dueDate,
     required this.columns,
   });
 
@@ -17,12 +25,20 @@ class KanbanData {
     String? id,
     String? title,
     String? description,
+    ProjectStatus? status,
+    Color? backgroundColor,
+    Color? foregroundColor,
+    String? dueDate,
     List<SortableData<KanbanColumnData>>? columns,
   }) {
     return KanbanData(
       id: id ?? this.id,
       title: title ?? this.title,
       description: description ?? this.description,
+      status: status ?? this.status,
+      backgroundColor: backgroundColor ?? this.backgroundColor,
+      foregroundColor: foregroundColor ?? this.foregroundColor,
+      dueDate: dueDate ?? this.dueDate,
       columns: columns ?? this.columns,
     );
   }
@@ -112,6 +128,21 @@ extension TaskPriorityExtension on TaskPriority {
         return Colors.orange;
       case TaskPriority.low:
         return Colors.green;
+    }
+  }
+}
+
+enum ProjectStatus { delayed, inProgress, completed }
+
+extension ProjectStatusExtension on ProjectStatus {
+  String get displayName {
+    switch (this) {
+      case ProjectStatus.delayed:
+        return "Delayed";
+      case ProjectStatus.inProgress:
+        return "In Progress";
+      case ProjectStatus.completed:
+        return "Completed";
     }
   }
 }

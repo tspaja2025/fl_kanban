@@ -19,7 +19,7 @@ class AppScaffold extends ConsumerWidget {
         AppHeader(showBackButton: showBackButton),
         const Divider(),
       ],
-      child: Padding(padding: const EdgeInsets.all(16), child: child),
+      child: child,
     );
   }
 }

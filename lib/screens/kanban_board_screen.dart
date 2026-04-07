@@ -1,7 +1,8 @@
-import 'package:fl_kanban/constants/kanban_constants.dart';
+import 'package:fl_kanban/shared/kanban_constants.dart';
 import 'package:fl_kanban/models/models.dart';
 import 'package:fl_kanban/providers/kanban_board_provider.dart';
 import 'package:fl_kanban/widgets/badge.dart';
+import 'package:fl_kanban/widgets/card_container.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
@@ -15,8 +16,7 @@ class KanbanBoardScreen extends ConsumerStatefulWidget {
 }
 
 class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> {
-  String? selectedValue;
-  final TextEditingController _taskSearchController = TextEditingController();
+  final _taskSearchController = TextEditingController();
 
   @override
   void dispose() {
@@ -34,123 +34,133 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> {
     final filteredColumns = ref
         .read(kanbanProvider.notifier)
         .getFilteredColumns(widget.projectId);
-
     final notifier = ref.read(kanbanProvider.notifier);
     final ScrollController scrollController = ScrollController();
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Row(
-          children: [
-            if (_taskSearchController.text.isNotEmpty)
-              Container(
-                width: 250,
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.card,
-                  borderRadius: BorderRadius.circular(8),
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(currentProject.title).large.bold,
+                  Text(currentProject.description),
+                ],
+              ),
+              const Spacer(),
+              if (_taskSearchController.text.isNotEmpty)
+                Container(
+                  width: 320,
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.card,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(LucideIcons.search, size: 16),
+                      const Gap(8),
+                      Text(
+                        'Showing tasks matching: "${_taskSearchController.text}"',
+                      ).small,
+                      TextButton(
+                        onPressed: () {
+                          _taskSearchController.clear();
+                          notifier.updateTaskSearchQuery('');
+                        },
+                        child: const Text("Clear"),
+                      ),
+                    ],
+                  ),
                 ),
-                child: Row(
-                  children: [
-                    const Icon(LucideIcons.search, size: 16),
-                    const Gap(8),
-                    Text(
-                      'Showing tasks matching: "${_taskSearchController.text}"',
-                    ).small,
-                    const Spacer(),
-                    TextButton(
-                      onPressed: () {
-                        _taskSearchController.clear();
-                        notifier.updateTaskSearchQuery('');
-                      },
-                      child: const Text("Clear"),
+              SizedBox(
+                width: 250,
+                child: TextField(
+                  controller: _taskSearchController,
+                  placeholder: const Text("Search tasks"),
+                  onChanged: (value) {
+                    notifier.updateTaskSearchQuery(value);
+                  },
+                  features: [
+                    // Leading icon only visible when the text is empty
+                    InputFeature.leading(
+                      StatedWidget.builder(
+                        builder: (context, states) {
+                          // Use a muted icon normally, switch to the full icon on hover
+                          return states.hovered
+                              ? const Icon(LucideIcons.search)
+                              : const Icon(
+                                  LucideIcons.search,
+                                ).iconMutedForeground;
+                        },
+                      ),
+                      visibility: InputFeatureVisibility.textEmpty,
+                    ),
+                    // Clear button visible when there is text and the field is focused,
+                    // or whenever the field is hovered
+                    InputFeature.clear(
+                      visibility:
+                          (InputFeatureVisibility.textNotEmpty &
+                              InputFeatureVisibility.focused) |
+                          InputFeatureVisibility.hovered,
                     ),
                   ],
                 ),
               ),
-            const Spacer(),
-            SizedBox(
-              width: 250,
-              child: TextField(
-                controller: _taskSearchController,
-                placeholder: const Text("Search tasks"),
-                onChanged: (value) {
-                  notifier.updateTaskSearchQuery(value);
-                },
-                features: [
-                  // Leading icon only visible when the text is empty
-                  InputFeature.leading(
-                    StatedWidget.builder(
-                      builder: (context, states) {
-                        // Use a muted icon normally, switch to the full icon on hover
-                        return states.hovered
-                            ? const Icon(LucideIcons.search)
-                            : const Icon(
-                                LucideIcons.search,
-                              ).iconMutedForeground;
-                      },
-                    ),
-                    visibility: InputFeatureVisibility.textEmpty,
-                  ),
-                  // Clear button visible when there is text and the field is focused,
-                  // or whenever the field is hovered
-                  InputFeature.clear(
-                    visibility:
-                        (InputFeatureVisibility.textNotEmpty &
-                            InputFeatureVisibility.focused) |
-                        InputFeatureVisibility.hovered,
-                  ),
-                ],
+            ],
+          ),
+
+          const Gap(16),
+
+          Scrollbar(
+            controller: scrollController,
+            thumbVisibility: true,
+            trackVisibility: true,
+            interactive: true,
+            child: SingleChildScrollView(
+              controller: scrollController,
+              scrollDirection: Axis.horizontal,
+              child: SortableLayer(
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    for (int i = 0; i < filteredColumns.length; i++)
+                      KanbanColumn(
+                        key: ValueKey(filteredColumns[i].data.id),
+                        projectId: widget.projectId,
+                        column: filteredColumns[i],
+                        columnIndex: i,
+                        onMoveTask: notifier.moveTask,
+                        isSearchActive: _taskSearchController.text.isNotEmpty,
+                      ),
+                    if (_taskSearchController.text.isEmpty)
+                      KanbanColumnEmpty(
+                        projectId: widget.projectId,
+                        onAddColumn: (title) {
+                          notifier.addColumn(
+                            widget.projectId,
+                            KanbanColumnData(
+                              id: DateTime.now().millisecondsSinceEpoch
+                                  .toString(),
+                              title: title,
+                              tasks: [],
+                            ),
+                          );
+                        },
+                      ),
+                  ],
+                ).gap(KanbanConstants.gapSize),
               ),
             ),
-          ],
-        ).gap(16),
-
-        Scrollbar(
-          controller: scrollController,
-          thumbVisibility: true,
-          trackVisibility: true,
-          interactive: true,
-          child: SingleChildScrollView(
-            controller: scrollController,
-            scrollDirection: Axis.horizontal,
-            child: SortableLayer(
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  for (int i = 0; i < filteredColumns.length; i++)
-                    KanbanColumn(
-                      key: ValueKey(filteredColumns[i].data.id),
-                      projectId: widget.projectId,
-                      column: filteredColumns[i],
-                      columnIndex: i,
-                      onMoveTask: notifier.moveTask,
-                      isSearchActive: _taskSearchController.text.isNotEmpty,
-                    ),
-                  if (_taskSearchController.text.isEmpty)
-                    KanbanColumnEmpty(
-                      projectId: widget.projectId,
-                      onAddColumn: (title) {
-                        notifier.addColumn(
-                          widget.projectId,
-                          KanbanColumnData(
-                            id: DateTime.now().millisecondsSinceEpoch
-                                .toString(),
-                            title: title,
-                            tasks: [],
-                          ),
-                        );
-                      },
-                    ),
-                ],
-              ).gap(KanbanConstants.gapSize),
-            ),
           ),
-        ),
-      ],
-    ).gap(16);
+        ],
+      ),
+    );
   }
 }
 
@@ -183,8 +193,8 @@ class _KanbanColumnState extends ConsumerState<KanbanColumn> {
     return Container(
       width: KanbanConstants.columnWidth,
       height: widget.isSearchActive
-          ? MediaQuery.of(context).size.height - 155
-          : MediaQuery.of(context).size.height - 140,
+          ? MediaQuery.of(context).size.height - 150
+          : MediaQuery.of(context).size.height - 145,
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.card,
         border: Border.all(
@@ -687,21 +697,8 @@ class KanbanColumnItem extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return Container(
-      width: double.infinity,
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.card,
-        border: Border.all(color: Theme.of(context).colorScheme.border),
-        borderRadius: BorderRadius.circular(KanbanConstants.borderRadius),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.1),
-            blurRadius: 2,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      padding: const EdgeInsets.all(KanbanConstants.columnPadding),
+    return CardContainer(
+      height: 180,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -852,7 +849,7 @@ class KanbanColumnItem extends ConsumerWidget {
               : null,
         ),
         const Gap(8),
-        Badge(child: priority.displayName, color: color),
+        Badge(text: priority.displayName, backgroundColor: color),
         const Spacer(),
         Avatar(
           size: 24,
