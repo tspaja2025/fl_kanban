@@ -123,6 +123,7 @@ class _KanbanProjectScreenState extends ConsumerState<KanbanProjectScreen> {
                       children: [
                         for (final board in boards)
                           ProjectCard(
+                            key: ValueKey(board.id),
                             onTap: () => context.pushNamed(
                               "kanbanProjectDetail",
                               pathParameters: {"id": board.id},
@@ -149,46 +150,6 @@ class _KanbanProjectScreenState extends ConsumerState<KanbanProjectScreen> {
       ],
     );
   }
-
-  // void _showNewProjectDialog(BuildContext context, WidgetRef ref) {
-  //   final formKey = GlobalKey<FormState>();
-  //   final titleController = TextEditingController();
-  //   final descriptionController = TextEditingController();
-
-  //   showDialog(
-  //     context: context,
-  //     builder: (context) {
-  //       return AlertDialog(
-  //         title: const Text("New Project"),
-  //         content: NewProjectForm(
-  //           formKey: formKey,
-  //           titleController: titleController,
-  //           descriptionController: descriptionController,
-  //         ),
-  //         actions: [
-  //           OutlineButton(
-  //             onPressed: () => Navigator.pop(context),
-  //             child: const Text("Cancel"),
-  //           ),
-  //           PrimaryButton(
-  //             onPressed: () {
-  //               final newProject = KanbanData(
-  //                 id: DateTime.now().millisecondsSinceEpoch.toString(),
-  //                 title: titleController.text,
-  //                 description: descriptionController.text,
-  //                 columns: [],
-  //               );
-
-  //               ref.read(kanbanProvider.notifier).addProject(newProject);
-  //               Navigator.pop(context);
-  //             },
-  //             child: const Text("Save"),
-  //           ),
-  //         ],
-  //       );
-  //     },
-  //   );
-  // }
 }
 
 class NewProjectForm extends ConsumerWidget {
@@ -315,18 +276,65 @@ class ProjectCard extends ConsumerWidget {
               onPressed: () {
                 showDropdown(
                   context: context,
-                  builder: (context) {
+                  builder: (dropdownContext) {
                     return DropdownMenu(
                       children: [
                         const MenuLabel(child: Text("Actions")),
                         const MenuDivider(),
                         MenuButton(
-                          onPressed: (_) {},
+                          onPressed: (_) {
+                            if (context.canPop()) {
+                              context.pop();
+                            }
+
+                            _showEditProjectDialog(
+                              context,
+                              ref,
+                              projectId,
+                              title,
+                              description,
+                            );
+                          },
                           child: const Text("Edit Project"),
                         ),
                         MenuButton(
                           onPressed: (_) {
-                            notifier.deleteProject(projectId);
+                            if (context.canPop()) {
+                              context.pop();
+                            }
+
+                            showDialog(
+                              context: context,
+                              builder: (dialogContext) {
+                                return AlertDialog(
+                                  title: const Text("Delete Project"),
+                                  content: Text(
+                                    "Are you sure you want to delete '$title'? This action cannot be undone.",
+                                  ),
+                                  actions: [
+                                    OutlineButton(
+                                      onPressed: () =>
+                                          Navigator.pop(dialogContext),
+                                      child: const Text("Cancel"),
+                                    ),
+                                    PrimaryButton(
+                                      onPressed: () {
+                                        Navigator.pop(
+                                          dialogContext,
+                                        ); // Close confirmation dialog
+
+                                        // Delete the project
+                                        notifier.deleteProject(projectId);
+
+                                        // Show toast notification
+                                        _showDeleteToast(context, title);
+                                      },
+                                      child: const Text("Delete"),
+                                    ),
+                                  ],
+                                );
+                              },
+                            );
                           },
                           child: const Text("Delete Project"),
                         ),
@@ -350,6 +358,120 @@ class ProjectCard extends ConsumerWidget {
         const Spacer(),
         Text(dueDate).muted,
       ],
+    );
+  }
+
+  void _showDeleteToast(BuildContext context, String projectTitle) {
+    final rootContext = Navigator.of(context, rootNavigator: true).context;
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!rootContext.mounted) return;
+
+      showToast(
+        context: rootContext,
+        location: ToastLocation.bottomRight,
+        builder: (BuildContext toastContext, ToastOverlay overlay) {
+          return SurfaceCard(
+            child: Basic(
+              trailing: PrimaryButton(
+                size: ButtonSize.small,
+                onPressed: () {
+                  overlay.close();
+                },
+                child: const Text("Close"),
+              ),
+              title: Text("Deleted project: $projectTitle"),
+              subtitle: const Text(
+                "The project has been successfully removed.",
+              ),
+            ),
+          );
+        },
+      );
+    });
+  }
+
+  void _showEditProjectDialog(
+    BuildContext context,
+    WidgetRef ref,
+    String projectId,
+    String currentTitle,
+    String currentDescription,
+  ) {
+    final formKey = GlobalKey<FormState>();
+    final titleController = TextEditingController(text: currentTitle);
+    final descriptionController = TextEditingController(
+      text: currentDescription,
+    );
+
+    showDialog(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: const Text("Edit Project"),
+          content: NewProjectForm(
+            formKey: formKey,
+            titleController: titleController,
+            descriptionController: descriptionController,
+          ),
+          actions: [
+            OutlineButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: const Text("Cancel"),
+            ),
+            PrimaryButton(
+              onPressed: () {
+                final updatedProject = KanbanData(
+                  id: projectId,
+                  title: titleController.text,
+                  description: descriptionController.text,
+                  status: ProjectStatus
+                      .inProgress, // Keep existing status or add status picker
+                  backgroundColor: const Color(0xFFE0F2FE),
+                  foregroundColor: const Color(0xFF075985),
+                  dueDate: "3 days left",
+                  columns: [], // You should fetch existing columns
+                );
+
+                Navigator.pop(dialogContext);
+
+                // You need to add this method to your KanbanNotifier
+                ref.read(kanbanProvider.notifier).updateProject(updatedProject);
+
+                // Show success toast
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  if (!context.mounted) return;
+
+                  showToast(
+                    context: context,
+                    location: ToastLocation.bottomRight,
+                    builder: (BuildContext toastContext, ToastOverlay overlay) {
+                      return SurfaceCard(
+                        child: Basic(
+                          trailing: PrimaryButton(
+                            size: ButtonSize.small,
+                            onPressed: () {
+                              overlay.close();
+                            },
+                            child: const Text("Close"),
+                          ),
+                          title: Text(
+                            "Updated project: ${titleController.text}",
+                          ),
+                          subtitle: const Text(
+                            "Your new project has been updated successfully.",
+                          ),
+                        ),
+                      );
+                    },
+                  );
+                });
+              },
+              child: const Text("Save Changes"),
+            ),
+          ],
+        );
+      },
     );
   }
 }
@@ -382,7 +504,7 @@ class CreateProjectCard extends ConsumerWidget {
 
     showDialog(
       context: context,
-      builder: (context) {
+      builder: (dialogContext) {
         return AlertDialog(
           title: const Text("New Project"),
           content: NewProjectForm(
@@ -392,7 +514,7 @@ class CreateProjectCard extends ConsumerWidget {
           ),
           actions: [
             OutlineButton(
-              onPressed: () => Navigator.pop(context),
+              onPressed: () => Navigator.pop(dialogContext),
               child: const Text("Cancel"),
             ),
             PrimaryButton(
@@ -408,8 +530,35 @@ class CreateProjectCard extends ConsumerWidget {
                   columns: [],
                 );
 
+                Navigator.pop(dialogContext);
+
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  if (!context.mounted) return;
+
+                  showToast(
+                    context: context,
+                    location: ToastLocation.bottomRight,
+                    builder: (BuildContext toastContext, ToastOverlay overlay) {
+                      return SurfaceCard(
+                        child: Basic(
+                          trailing: PrimaryButton(
+                            size: ButtonSize.small,
+                            onPressed: () {
+                              overlay.close();
+                            },
+                            child: const Text("Close"),
+                          ),
+                          title: Text("Created project: ${newProject.title}"),
+                          subtitle: const Text(
+                            "Your new project has been added successfully.",
+                          ),
+                        ),
+                      );
+                    },
+                  );
+                });
+
                 ref.read(kanbanProvider.notifier).addProject(newProject);
-                Navigator.pop(context);
               },
               child: const Text("Create"),
             ),

@@ -582,6 +582,28 @@ class KanbanNotifier extends Notifier<List<KanbanData>> {
     }
   }
 
+  void updateProject(KanbanData updatedProject) {
+    final projectIndex = state.indexWhere((p) => p.id == updatedProject.id);
+
+    if (projectIndex != -1) {
+      // Preserve existing columns and other data that wasn't updated
+      final existingProject = state[projectIndex];
+      final mergedProject = updatedProject.copyWith(
+        columns: existingProject.columns,
+        status: existingProject.status,
+        dueDate: existingProject.dueDate,
+        backgroundColor: existingProject.backgroundColor,
+        foregroundColor: existingProject.foregroundColor,
+      );
+
+      state = [
+        ...state.take(projectIndex),
+        mergedProject,
+        ...state.skip(projectIndex + 1),
+      ];
+    }
+  }
+
   void deleteProject(String projectId) {
     state = state.where((p) => p.id != projectId).toList();
   }
