@@ -42,6 +42,34 @@ class KanbanData {
       columns: columns ?? this.columns,
     );
   }
+
+  Map<String, dynamic> toJson() {
+    return {
+      "id": id,
+      "title": title,
+      "description": description,
+      "status": status,
+      "backgroundColor": backgroundColor,
+      "foregroundColor": foregroundColor,
+      "dueDate": dueDate,
+      "columns": columns.map((col) => col.data.toJson()).toList(),
+    };
+  }
+
+  static KanbanData fromJson(Map<String, dynamic> json) {
+    return KanbanData(
+      id: json["id"] as String,
+      title: json["title"] as String,
+      description: json["description"] as String,
+      status: ProjectStatus.values[json["status"] as int],
+      backgroundColor: Color(json["backgroundColor"] as int),
+      foregroundColor: Color(json["foregroundCOlor"] as int),
+      dueDate: json["dueDate"] as String,
+      columns: (json["columns"] as List)
+          .map((colJson) => SortableData(KanbanColumnData.fromJson(colJson)))
+          .toList(),
+    );
+  }
 }
 
 class KanbanColumnData {
@@ -64,6 +92,24 @@ class KanbanColumnData {
       id: id ?? this.id,
       title: title ?? this.title,
       tasks: tasks ?? this.tasks,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      "id": id,
+      "title": title,
+      "tasks": tasks.map((task) => task.data.toJson()).toList(),
+    };
+  }
+
+  static KanbanColumnData fromJson(Map<String, dynamic> json) {
+    return KanbanColumnData(
+      id: json['id'] as String,
+      title: json['title'] as String,
+      tasks: (json['tasks'] as List)
+          .map((taskJson) => SortableData(KanbanTaskData.fromJson(taskJson)))
+          .toList(),
     );
   }
 }
@@ -104,6 +150,30 @@ class KanbanTaskData {
   }
 
   Color get effectiveColor => color ?? priority.color;
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'title': title,
+      'description': description,
+      'priority': priority.index,
+      'color': color,
+      'dueDate': dueDate?.toIso8601String(),
+    };
+  }
+
+  static KanbanTaskData fromJson(Map<String, dynamic> json) {
+    return KanbanTaskData(
+      id: json['id'] as String,
+      title: json['title'] as String,
+      description: json['description'] as String,
+      priority: TaskPriority.values[json['priority'] as int],
+      color: json['color'] != null ? Color(json['color'] as int) : null,
+      dueDate: json['dueDate'] != null
+          ? DateTime.parse(json['dueDate'] as String)
+          : null,
+    );
+  }
 }
 
 enum TaskPriority { high, medium, low }

@@ -1,12 +1,14 @@
 import 'package:fl_kanban/models/models.dart';
+import 'package:fl_kanban/service/storage_service.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
-final kanbanProvider = NotifierProvider<KanbanNotifier, List<KanbanData>>(
+final kanbanProvider = AsyncNotifierProvider<KanbanNotifier, List<KanbanData>>(
   KanbanNotifier.new,
 );
 
-class KanbanNotifier extends Notifier<List<KanbanData>> {
+class KanbanNotifier extends AsyncNotifier<List<KanbanData>> {
+  final StorageService _storageService = StorageService();
   String _searchQuery = "";
   String _taskSearchQuery = "";
 
@@ -14,7 +16,17 @@ class KanbanNotifier extends Notifier<List<KanbanData>> {
   String get taskSearchQuery => _taskSearchQuery;
 
   @override
-  List<KanbanData> build() {
+  Future<List<KanbanData>> build() async {
+    final savedData = await _storageService.loadKanbanData();
+
+    if (savedData.isNotEmpty) {
+      return savedData;
+    }
+
+    return _getExampleKanbanData();
+  }
+
+  List<KanbanData> _getExampleKanbanData() {
     return [
       KanbanData(
         id: "1",
@@ -339,18 +351,21 @@ class KanbanNotifier extends Notifier<List<KanbanData>> {
 
   List<KanbanData> get filteredProjects {
     if (_searchQuery.isEmpty) {
-      return state;
+      return state.value ?? [];
     }
 
     final query = _searchQuery.trim().toLowerCase();
-    return state.where((project) {
+    return (state.value ?? []).where((project) {
       return project.title.toLowerCase().contains(query) ||
           project.description.toLowerCase().contains(query);
     }).toList();
   }
 
   List<SortableData<KanbanColumnData>> getFilteredColumns(String projectId) {
-    final project = state.firstWhere((p) => p.id == projectId);
+    final projects = state.value;
+    if (projects == null) return [];
+
+    final project = projects.firstWhere((p) => p.id == projectId);
 
     if (_taskSearchQuery.isEmpty) {
       return project.columns;
@@ -371,24 +386,31 @@ class KanbanNotifier extends Notifier<List<KanbanData>> {
 
   void updateSearchQuery(String query) {
     _searchQuery = query;
-    state = [...state];
+    ref.notifyListeners();
   }
 
   void updateTaskSearchQuery(String query) {
     _taskSearchQuery = query;
-    state = [...state];
+    ref.notifyListeners();
   }
 
-  void moveTask(
+  // Helper method to save state after modifications
+  Future<void> _saveAndUpdate(List<KanbanData> newState) async {
+    state = AsyncData(newState);
+    await _storageService.saveKanbanData(newState);
+  }
+
+  Future<void> moveTask(
     SortableData<KanbanTaskData> task,
     int targetColumnIndex,
     int targetTaskIndex,
-  ) {
-    final projects = [...state];
-    if (projects.isEmpty) return;
+  ) async {
+    final projects = state.value;
+    if (projects == null || projects.isEmpty) return;
 
+    final projectsList = List<KanbanData>.from(projects);
     final columns = List<SortableData<KanbanColumnData>>.from(
-      projects[0].columns,
+      projectsList[0].columns,
     );
 
     SortableData<KanbanTaskData>? removedTask;
@@ -415,44 +437,59 @@ class KanbanNotifier extends Notifier<List<KanbanData>> {
     }
 
     // Update state
-    state = [projects[0].copyWith(columns: columns), ...projects.skip(1)];
+    final newProjects = [
+      projectsList[0].copyWith(columns: columns),
+      ...projectsList.skip(1),
+    ];
+    await _saveAndUpdate(newProjects);
   }
 
-  void addTask(String projectId, String columnId, KanbanTaskData task) {
-    final projects = [...state];
-    final projectIndex = projects.indexWhere((p) => p.id == projectId);
+  Future<void> addTask(
+    String projectId,
+    String columnId,
+    KanbanTaskData task,
+  ) async {
+    final projects = state.value;
+    if (projects == null) return;
+
+    final projectsList = List<KanbanData>.from(projects);
+    final projectIndex = projectsList.indexWhere((p) => p.id == projectId);
 
     if (projectIndex == -1) return;
 
     final columns = List<SortableData<KanbanColumnData>>.from(
-      projects[projectIndex].columns,
+      projectsList[projectIndex].columns,
     );
     final columnIndex = columns.indexWhere((c) => c.data.id == columnId);
 
     if (columnIndex != -1) {
       // Wrap the new task in SortableData
       columns[columnIndex].data.tasks.add(SortableData(task));
-      state = [
-        ...projects.take(projectIndex),
-        projects[projectIndex].copyWith(columns: columns),
-        ...projects.skip(projectIndex + 1),
+      final newProjects = [
+        ...projectsList.take(projectIndex),
+        projectsList[projectIndex].copyWith(columns: columns),
+        ...projectsList.skip(projectIndex + 1),
       ];
+      await _saveAndUpdate(newProjects);
     }
   }
 
-  void editTask(
+  Future<void> editTask(
     String projectId,
     String columnId,
     String taskId,
     KanbanTaskData updatedTask,
-  ) {
-    final projects = [...state];
-    final projectIndex = projects.indexWhere((p) => p.id == projectId);
+  ) async {
+    final projects = state.value;
+    if (projects == null) return;
+
+    final projectsList = List<KanbanData>.from(projects);
+    final projectIndex = projectsList.indexWhere((p) => p.id == projectId);
 
     if (projectIndex == -1) return;
 
     final columns = List<SortableData<KanbanColumnData>>.from(
-      projects[projectIndex].columns,
+      projectsList[projectIndex].columns,
     );
     final columnIndex = columns.indexWhere((c) => c.data.id == columnId);
 
@@ -462,86 +499,110 @@ class KanbanNotifier extends Notifier<List<KanbanData>> {
       );
       if (taskIndex != -1) {
         columns[columnIndex].data.tasks[taskIndex] = SortableData(updatedTask);
-        state = [
-          ...projects.take(projectIndex),
-          projects[projectIndex].copyWith(columns: columns),
-          ...projects.skip(projectIndex + 1),
+        final newProjects = [
+          ...projectsList.take(projectIndex),
+          projectsList[projectIndex].copyWith(columns: columns),
+          ...projectsList.skip(projectIndex + 1),
         ];
+        await _saveAndUpdate(newProjects);
       }
     }
   }
 
-  void deleteTask(String projectId, String columnId, String taskId) {
-    final projects = [...state];
-    final projectIndex = projects.indexWhere((p) => p.id == projectId);
+  Future<void> deleteTask(
+    String projectId,
+    String columnId,
+    String taskId,
+  ) async {
+    final projects = state.value;
+    if (projects == null) return;
+
+    final projectsList = List<KanbanData>.from(projects);
+    final projectIndex = projectsList.indexWhere((p) => p.id == projectId);
 
     if (projectIndex == -1) return;
 
     final columns = List<SortableData<KanbanColumnData>>.from(
-      projects[projectIndex].columns,
+      projectsList[projectIndex].columns,
     );
     final columnIndex = columns.indexWhere((c) => c.data.id == columnId);
 
     if (columnIndex != -1) {
       columns[columnIndex].data.tasks.removeWhere((t) => t.data.id == taskId);
-      state = [
-        ...projects.take(projectIndex),
-        projects[projectIndex].copyWith(columns: columns),
-        ...projects.skip(projectIndex + 1),
+      final newProjects = [
+        ...projectsList.take(projectIndex),
+        projectsList[projectIndex].copyWith(columns: columns),
+        ...projectsList.skip(projectIndex + 1),
       ];
+      await _saveAndUpdate(newProjects);
     }
   }
 
-  void addColumn(String projectId, KanbanColumnData column) {
-    final projects = [...state];
-    final projectIndex = projects.indexWhere((p) => p.id == projectId);
+  Future<void> addColumn(String projectId, KanbanColumnData column) async {
+    final projects = state.value;
+    if (projects == null) return;
+
+    final projectsList = List<KanbanData>.from(projects);
+    final projectIndex = projectsList.indexWhere((p) => p.id == projectId);
 
     if (projectIndex == -1) return;
 
     final columns = List<SortableData<KanbanColumnData>>.from(
-      projects[projectIndex].columns,
+      projectsList[projectIndex].columns,
     );
     // Wrap the new column in SortableData
     columns.add(SortableData(column));
 
     // Update the project with new columns
-    state = [
-      ...projects.take(projectIndex),
-      projects[projectIndex].copyWith(columns: columns),
-      ...projects.skip(projectIndex + 1),
+    final newProjects = [
+      ...projectsList.take(projectIndex),
+      projectsList[projectIndex].copyWith(columns: columns),
+      ...projectsList.skip(projectIndex + 1),
     ];
+    await _saveAndUpdate(newProjects);
   }
 
-  void editColumn(String projectId, String columnId, String newTitle) {
-    final projects = [...state];
-    final projectIndex = projects.indexWhere((p) => p.id == projectId);
+  Future<void> editColumn(
+    String projectId,
+    String columnId,
+    String newTitle,
+  ) async {
+    final projects = state.value;
+    if (projects == null) return;
+
+    final projectsList = List<KanbanData>.from(projects);
+    final projectIndex = projectsList.indexWhere((p) => p.id == projectId);
 
     if (projectIndex == -1) return;
 
     final columns = List<SortableData<KanbanColumnData>>.from(
-      projects[projectIndex].columns,
+      projectsList[projectIndex].columns,
     );
     final columnIndex = columns.indexWhere((c) => c.data.id == columnId);
 
     if (columnIndex != -1) {
       final updatedColumn = columns[columnIndex].data.copyWith(title: newTitle);
       columns[columnIndex] = SortableData(updatedColumn);
-      state = [
-        ...projects.take(projectIndex),
-        projects[projectIndex].copyWith(columns: columns),
-        ...projects.skip(projectIndex + 1),
+      final newProjects = [
+        ...projectsList.take(projectIndex),
+        projectsList[projectIndex].copyWith(columns: columns),
+        ...projectsList.skip(projectIndex + 1),
       ];
+      await _saveAndUpdate(newProjects);
     }
   }
 
-  void deleteColumn(String projectId, String columnId) {
-    final projects = [...state];
-    final projectIndex = projects.indexWhere((p) => p.id == projectId);
+  Future<void> deleteColumn(String projectId, String columnId) async {
+    final projects = state.value;
+    if (projects == null) return;
+
+    final projectsList = List<KanbanData>.from(projects);
+    final projectIndex = projectsList.indexWhere((p) => p.id == projectId);
 
     if (projectIndex == -1) return;
 
     final columns = List<SortableData<KanbanColumnData>>.from(
-      projects[projectIndex].columns,
+      projectsList[projectIndex].columns,
     );
     columns.removeWhere((c) => c.data.id == columnId);
 
@@ -557,35 +618,46 @@ class KanbanNotifier extends Notifier<List<KanbanData>> {
       );
     }
 
-    state = [
+    final newProjects = [
       ...projects.take(projectIndex),
       projects[projectIndex].copyWith(columns: columns),
-      ...projects.skip(projectIndex + 1),
+      ...projectsList.skip(projectIndex + 1),
     ];
+    await _saveAndUpdate(newProjects);
   }
 
-  void addProject(KanbanData project) {
-    state = [...state, project];
+  Future<void> addProject(KanbanData project) async {
+    final projects = state.value;
+    if (projects == null) return;
+
+    final newProjects = [...projects, project];
+    await _saveAndUpdate(newProjects);
   }
 
-  void editProject(String projectId, KanbanData updatedProject) {
-    final projectIndex = state.indexWhere((p) => p.id == projectId);
+  Future<void> editProject(String projectId, KanbanData updatedProject) async {
+    final projects = state.value;
+    if (projects == null) return;
+
+    final projectIndex = projects.indexWhere((p) => p.id == projectId);
 
     if (projectIndex != -1) {
-      state = [
-        ...state.take(projectIndex),
+      final newProjects = [
+        ...projects.take(projectIndex),
         updatedProject,
-        ...state.skip(projectIndex + 1),
+        ...projects.skip(projectIndex + 1),
       ];
+      await _saveAndUpdate(newProjects);
     }
   }
 
-  void updateProject(KanbanData updatedProject) {
-    final projectIndex = state.indexWhere((p) => p.id == updatedProject.id);
+  Future<void> updateProject(KanbanData updatedProject) async {
+    final projects = state.value;
+    if (projects == null) return;
+
+    final projectIndex = projects.indexWhere((p) => p.id == updatedProject.id);
 
     if (projectIndex != -1) {
-      // Preserve existing columns and other data that wasn't updated
-      final existingProject = state[projectIndex];
+      final existingProject = projects[projectIndex];
       final mergedProject = updatedProject.copyWith(
         columns: existingProject.columns,
         status: existingProject.status,
@@ -594,15 +666,26 @@ class KanbanNotifier extends Notifier<List<KanbanData>> {
         foregroundColor: existingProject.foregroundColor,
       );
 
-      state = [
-        ...state.take(projectIndex),
+      final newProjects = [
+        ...projects.take(projectIndex),
         mergedProject,
-        ...state.skip(projectIndex + 1),
+        ...projects.skip(projectIndex + 1),
       ];
+      await _saveAndUpdate(newProjects);
     }
   }
 
-  void deleteProject(String projectId) {
-    state = state.where((p) => p.id != projectId).toList();
+  Future<void> deleteProject(String projectId) async {
+    final projects = state.value;
+    if (projects == null) return;
+
+    final newProjects = projects.where((p) => p.id != projectId).toList();
+    await _saveAndUpdate(newProjects);
+  }
+
+  Future<void> resetToDefault() async {
+    final defaultData = _getExampleKanbanData();
+    await _storageService.clearSavedData();
+    await _saveAndUpdate(defaultData);
   }
 }
