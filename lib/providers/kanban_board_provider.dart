@@ -385,8 +385,6 @@ class KanbanNotifier extends Notifier<List<KanbanData>> {
     int targetTaskIndex,
   ) {
     final projects = [...state];
-    // Assuming we're working with the first project for now
-    // You might want to pass projectId as a parameter
     if (projects.isEmpty) return;
 
     final columns = List<SortableData<KanbanColumnData>>.from(

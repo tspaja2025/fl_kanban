@@ -30,6 +30,12 @@ class AppHeader extends ConsumerWidget {
             size: 16,
           ),
         ),
+        IconButton.ghost(
+          onPressed: () {
+            context.pushNamed("auth");
+          },
+          icon: const Icon(LucideIcons.logOut, size: 16),
+        ),
       ],
     );
   }

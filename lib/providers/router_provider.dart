@@ -1,3 +1,4 @@
+import 'package:fl_kanban/screens/auth_screen.dart';
 import 'package:fl_kanban/screens/kanban_board_screen.dart';
 import 'package:fl_kanban/screens/kanban_project_screen.dart';
 import 'package:fl_kanban/shared/app_scaffold.dart';
@@ -10,12 +11,23 @@ final routerProvider = Provider<GoRouter>((ref) {
     routes: [
       ShellRoute(
         builder: (context, state, child) {
-          final showBackButton = state.uri.path != "/";
-          return AppScaffold(showBackButton: showBackButton, child: child);
+          final isAuth = state.uri.path == "/";
+          final showBackButton = state.uri.path != "/projects";
+
+          return AppScaffold(
+            showBackButton: showBackButton,
+            showHeader: !isAuth,
+            child: child,
+          );
         },
         routes: [
           GoRoute(
             path: "/",
+            name: "auth",
+            builder: (context, state) => const AuthScreen(),
+          ),
+          GoRoute(
+            path: "/projects",
             name: "projects",
             builder: (context, state) => const KanbanProjectScreen(),
           ),
