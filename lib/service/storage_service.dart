@@ -25,7 +25,7 @@ class StorageService {
       final jsonString = jsonEncode(jsonList);
       await file.writeAsString(jsonString);
     } catch (e) {
-      print("Error saving kanban data: $e");
+      debugPrint("Error saving kanban data: $e");
       rethrow;
     }
   }
@@ -44,7 +44,7 @@ class StorageService {
 
       return jsonList.map((json) => KanbanData.fromJson(json)).toList();
     } catch (e) {
-      print("Error loading kanban data: $e");
+      debugPrint("Error loading kanban data: $e");
       return [];
     }
   }
@@ -57,7 +57,7 @@ class StorageService {
         await file.delete();
       }
     } catch (e) {
-      print("Error clearing saved data: $e");
+      debugPrint("Error clearing saved data: $e");
     }
   }
 }

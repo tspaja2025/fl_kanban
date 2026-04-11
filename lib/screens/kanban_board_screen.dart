@@ -26,140 +26,153 @@ class _KanbanBoardScreenState extends ConsumerState<KanbanBoardScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final projects = ref.watch(kanbanProvider);
-    final currentProject = projects.firstWhere(
-      (project) => project.id == widget.projectId,
-      orElse: () => projects.first,
-    );
-    final filteredColumns = ref
-        .read(kanbanProvider.notifier)
-        .getFilteredColumns(widget.projectId);
+    final projectsAsync = ref.watch(kanbanProvider);
     final notifier = ref.read(kanbanProvider.notifier);
     final ScrollController scrollController = ScrollController();
 
-    return Padding(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
+    return projectsAsync.when(
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (error, stackTrace) => Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text('Error loading projects: $error'),
+            const Gap(16),
+            PrimaryButton(
+              onPressed: () => ref.invalidate(kanbanProvider),
+              child: const Text('Retry'),
+            ),
+          ],
+        ),
+      ),
+      data: (projects) {
+        final currentProject = projects.firstWhere(
+          (project) => project.id == widget.projectId,
+          orElse: () => projects.first,
+        );
+
+        final filteredColumns = notifier.getFilteredColumns(widget.projectId);
+
+        return Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              Row(
                 children: [
-                  Text(currentProject.title).large.bold,
-                  Text(currentProject.description),
-                ],
-              ),
-              const Spacer(),
-              if (_taskSearchController.text.isNotEmpty)
-                Container(
-                  width: 320,
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.card,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Row(
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Icon(LucideIcons.search, size: 16),
-                      const Gap(8),
-                      Text(
-                        'Showing tasks matching: "${_taskSearchController.text}"',
-                      ).small,
-                      TextButton(
-                        onPressed: () {
-                          _taskSearchController.clear();
-                          notifier.updateTaskSearchQuery('');
-                        },
-                        child: const Text("Clear"),
-                      ),
+                      Text(currentProject.title).large.bold,
+                      Text(currentProject.description),
                     ],
                   ),
-                ),
-              SizedBox(
-                width: 250,
-                child: TextField(
-                  controller: _taskSearchController,
-                  placeholder: const Text("Search tasks"),
-                  onChanged: (value) {
-                    notifier.updateTaskSearchQuery(value);
-                  },
-                  features: [
-                    // Leading icon only visible when the text is empty
-                    InputFeature.leading(
-                      StatedWidget.builder(
-                        builder: (context, states) {
-                          // Use a muted icon normally, switch to the full icon on hover
-                          return states.hovered
-                              ? const Icon(LucideIcons.search)
-                              : const Icon(
-                                  LucideIcons.search,
-                                ).iconMutedForeground;
-                        },
+                  const Spacer(),
+                  if (_taskSearchController.text.isNotEmpty)
+                    Container(
+                      width: 320,
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).colorScheme.card,
+                        borderRadius: BorderRadius.circular(8),
                       ),
-                      visibility: InputFeatureVisibility.textEmpty,
+                      child: Row(
+                        children: [
+                          const Icon(LucideIcons.search, size: 16),
+                          const Gap(8),
+                          Text(
+                            'Showing tasks matching: "${_taskSearchController.text}"',
+                          ).small,
+                          TextButton(
+                            onPressed: () {
+                              _taskSearchController.clear();
+                              notifier.updateTaskSearchQuery('');
+                            },
+                            child: const Text("Clear"),
+                          ),
+                        ],
+                      ),
                     ),
-                    // Clear button visible when there is text and the field is focused,
-                    // or whenever the field is hovered
-                    InputFeature.clear(
-                      visibility:
-                          (InputFeatureVisibility.textNotEmpty &
-                              InputFeatureVisibility.focused) |
-                          InputFeatureVisibility.hovered,
+                  SizedBox(
+                    width: 250,
+                    child: TextField(
+                      controller: _taskSearchController,
+                      placeholder: const Text("Search tasks"),
+                      onChanged: (value) {
+                        notifier.updateTaskSearchQuery(value);
+                      },
+                      features: [
+                        InputFeature.leading(
+                          StatedWidget.builder(
+                            builder: (context, states) {
+                              return states.hovered
+                                  ? const Icon(LucideIcons.search)
+                                  : const Icon(
+                                      LucideIcons.search,
+                                    ).iconMutedForeground;
+                            },
+                          ),
+                          visibility: InputFeatureVisibility.textEmpty,
+                        ),
+                        InputFeature.clear(
+                          visibility:
+                              (InputFeatureVisibility.textNotEmpty &
+                                  InputFeatureVisibility.focused) |
+                              InputFeatureVisibility.hovered,
+                        ),
+                      ],
                     ),
-                  ],
+                  ),
+                ],
+              ),
+              const Gap(16),
+              Scrollbar(
+                controller: scrollController,
+                thumbVisibility: true,
+                trackVisibility: true,
+                interactive: true,
+                child: SingleChildScrollView(
+                  controller: scrollController,
+                  scrollDirection: Axis.horizontal,
+                  child: SortableLayer(
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        for (int i = 0; i < filteredColumns.length; i++)
+                          KanbanColumn(
+                            key: ValueKey(filteredColumns[i].data.id),
+                            projectId: widget.projectId,
+                            column: filteredColumns[i],
+                            columnIndex: i,
+                            onMoveTask: notifier.moveTask,
+                            isSearchActive:
+                                _taskSearchController.text.isNotEmpty,
+                          ),
+                        if (_taskSearchController.text.isEmpty)
+                          KanbanColumnEmpty(
+                            projectId: widget.projectId,
+                            onAddColumn: (title) {
+                              notifier.addColumn(
+                                widget.projectId,
+                                KanbanColumnData(
+                                  id: DateTime.now().millisecondsSinceEpoch
+                                      .toString(),
+                                  title: title,
+                                  tasks: [],
+                                ),
+                              );
+                            },
+                          ),
+                      ],
+                    ).gap(KanbanConstants.gapSize),
+                  ),
                 ),
               ),
             ],
           ),
-
-          const Gap(16),
-
-          Scrollbar(
-            controller: scrollController,
-            thumbVisibility: true,
-            trackVisibility: true,
-            interactive: true,
-            child: SingleChildScrollView(
-              controller: scrollController,
-              scrollDirection: Axis.horizontal,
-              child: SortableLayer(
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    for (int i = 0; i < filteredColumns.length; i++)
-                      KanbanColumn(
-                        key: ValueKey(filteredColumns[i].data.id),
-                        projectId: widget.projectId,
-                        column: filteredColumns[i],
-                        columnIndex: i,
-                        onMoveTask: notifier.moveTask,
-                        isSearchActive: _taskSearchController.text.isNotEmpty,
-                      ),
-                    if (_taskSearchController.text.isEmpty)
-                      KanbanColumnEmpty(
-                        projectId: widget.projectId,
-                        onAddColumn: (title) {
-                          notifier.addColumn(
-                            widget.projectId,
-                            KanbanColumnData(
-                              id: DateTime.now().millisecondsSinceEpoch
-                                  .toString(),
-                              title: title,
-                              tasks: [],
-                            ),
-                          );
-                        },
-                      ),
-                  ],
-                ).gap(KanbanConstants.gapSize),
-              ),
-            ),
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 }
@@ -168,7 +181,8 @@ class KanbanColumn extends ConsumerStatefulWidget {
   final String projectId;
   final SortableData<KanbanColumnData> column;
   final int columnIndex;
-  final void Function(SortableData<KanbanTaskData>, int, int) onMoveTask;
+  final void Function(String, SortableData<KanbanTaskData>, int, int)
+  onMoveTask;
   final bool isSearchActive;
 
   const KanbanColumn({
@@ -211,6 +225,7 @@ class _KanbanColumnState extends ConsumerState<KanbanColumn> {
             ? null
             : (value) {
                 widget.onMoveTask(
+                  widget.projectId,
                   value,
                   widget.columnIndex,
                   widget.column.data.tasks.length,
@@ -353,10 +368,20 @@ class _KanbanColumnState extends ConsumerState<KanbanColumn> {
       return Sortable<KanbanTaskData>(
         data: task,
         onAcceptTop: (value) {
-          widget.onMoveTask(value, widget.columnIndex, taskIndex);
+          widget.onMoveTask(
+            widget.projectId,
+            value,
+            widget.columnIndex,
+            taskIndex,
+          );
         },
         onAcceptBottom: (value) {
-          widget.onMoveTask(value, widget.columnIndex, taskIndex + 1);
+          widget.onMoveTask(
+            widget.projectId,
+            value,
+            widget.columnIndex,
+            taskIndex + 1,
+          );
         },
         child: KanbanColumnItem(
           projectId: widget.projectId,

@@ -11,4 +11,8 @@ class AuthModeNotifier extends Notifier<AuthMode> {
   AuthMode build() {
     return AuthMode.signIn;
   }
+
+  void setMode(AuthMode mode) {
+    state = mode;
+  }
 }

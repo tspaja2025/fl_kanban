@@ -28,127 +28,179 @@ class _KanbanProjectScreenState extends ConsumerState<KanbanProjectScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final projects = ref.watch(kanbanProvider);
+    final projectsAsync = ref.watch(kanbanProvider);
     final notifier = ref.read(kanbanProvider.notifier);
 
-    final boards = notifier.searchQuery.isEmpty
-        ? projects
-        : projects.where((project) {
-            final query = notifier.searchQuery.toLowerCase();
-            return project.title.toLowerCase().contains(query) ||
-                project.description.toLowerCase().contains(query);
-          }).toList();
+    return projectsAsync.when(
+      data: (projects) {
+        final boards = notifier.searchQuery.isEmpty
+            ? projects
+            : projects.where((project) {
+                final query = notifier.searchQuery.toLowerCase();
+                return project.title.toLowerCase().contains(query) ||
+                    project.description.toLowerCase().contains(query);
+              }).toList();
 
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Flexible(
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
+        return Row(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Flexible(
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text("Projects").large.bold,
-                        const Text(
-                          "Manage and track your projects.",
-                        ).small.muted,
-                      ],
-                    ),
-                    const Spacer(),
-                    SizedBox(
-                      width: 250,
-                      child: TextField(
-                        placeholder: const Text("Search projects"),
-                        onChanged: (value) {
-                          ref
-                              .read(kanbanProvider.notifier)
-                              .updateSearchQuery(value);
-                        },
-                        features: [
-                          // Leading icon only visible when the text is empty
-                          InputFeature.leading(
-                            StatedWidget.builder(
-                              builder: (context, states) {
-                                // Use a muted icon normally, switch to the full icon on hover
-                                return states.hovered
-                                    ? const Icon(LucideIcons.search)
-                                    : const Icon(
-                                        LucideIcons.search,
-                                      ).iconMutedForeground;
-                              },
-                            ),
-                            visibility: InputFeatureVisibility.textEmpty,
-                          ),
-                          // Clear button visible when there is text and the field is focused,
-                          // or whenever the field is hovered
-                          InputFeature.clear(
-                            visibility:
-                                (InputFeatureVisibility.textNotEmpty &
-                                    InputFeatureVisibility.focused) |
-                                InputFeatureVisibility.hovered,
-                          ),
-                        ],
-                      ),
-                    ),
-                    const Gap(8),
-                    Tabs(
+                    // ... your existing UI
+                    IndexedStack(
                       index: tabIndex,
-                      children: const [
-                        TabItem(child: Text("All")),
-                        TabItem(child: Text("Active")),
-                        TabItem(child: Text("Archived")),
-                      ],
-                      onChanged: (int value) {
-                        setState(() {
-                          tabIndex = value;
-                        });
-                      },
-                    ),
-                  ],
-                ),
-
-                const Gap(16),
-
-                IndexedStack(
-                  index: tabIndex,
-                  children: [
-                    Wrap(
-                      spacing: 16,
-                      runSpacing: 16,
                       children: [
-                        for (final board in boards)
-                          ProjectCard(
-                            key: ValueKey(board.id),
-                            onTap: () => context.pushNamed(
-                              "kanbanProjectDetail",
-                              pathParameters: {"id": board.id},
-                            ),
-                            projectId: board.id,
-                            title: board.title,
-                            description: board.description,
-                            status: board.status,
-                            backgroundColor: board.backgroundColor,
-                            foregroundColor: board.foregroundColor,
-                            dueDate: board.dueDate,
-                          ),
-                        const CreateProjectCard(),
+                        Wrap(
+                          spacing: 16,
+                          runSpacing: 16,
+                          children: [
+                            for (final board in boards)
+                              ProjectCard(
+                                key: ValueKey(board.id),
+                                onTap: () => context.pushNamed(
+                                  "kanbanProjectDetail",
+                                  pathParameters: {"id": board.id},
+                                ),
+                                projectId: board.id,
+                                title: board.title,
+                                description: board.description,
+                                status: board.status,
+                                backgroundColor: board.backgroundColor,
+                                foregroundColor: board.foregroundColor,
+                                dueDate: board.dueDate,
+                              ),
+                            const CreateProjectCard(),
+                          ],
+                        ),
+                        Column(children: [const Text("Active")]),
+                        Column(children: [const Text("Archived")]),
                       ],
                     ),
-                    Column(children: [const Text("Active")]),
-                    Column(children: [const Text("Archived")]),
                   ],
                 ),
-              ],
+              ),
             ),
-          ),
-        ),
-      ],
+          ],
+        );
+      },
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (error, stack) => Center(child: Text('Error: $error')),
     );
+
+    // return Row(
+    //   crossAxisAlignment: CrossAxisAlignment.stretch,
+    //   children: [
+    //     Flexible(
+    //       child: Padding(
+    //         padding: const EdgeInsets.all(16),
+    //         child: Column(
+    //           crossAxisAlignment: CrossAxisAlignment.start,
+    //           children: [
+    //             Row(
+    //               children: [
+    //                 Column(
+    //                   crossAxisAlignment: CrossAxisAlignment.start,
+    //                   children: [
+    //                     const Text("Projects").large.bold,
+    //                     const Text(
+    //                       "Manage and track your projects.",
+    //                     ).small.muted,
+    //                   ],
+    //                 ),
+    //                 const Spacer(),
+    //                 SizedBox(
+    //                   width: 250,
+    //                   child: TextField(
+    //                     placeholder: const Text("Search projects"),
+    //                     onChanged: (value) {
+    //                       ref
+    //                           .read(kanbanProvider.notifier)
+    //                           .updateSearchQuery(value);
+    //                     },
+    //                     features: [
+    //                       // Leading icon only visible when the text is empty
+    //                       InputFeature.leading(
+    //                         StatedWidget.builder(
+    //                           builder: (context, states) {
+    //                             // Use a muted icon normally, switch to the full icon on hover
+    //                             return states.hovered
+    //                                 ? const Icon(LucideIcons.search)
+    //                                 : const Icon(
+    //                                     LucideIcons.search,
+    //                                   ).iconMutedForeground;
+    //                           },
+    //                         ),
+    //                         visibility: InputFeatureVisibility.textEmpty,
+    //                       ),
+    //                       // Clear button visible when there is text and the field is focused,
+    //                       // or whenever the field is hovered
+    //                       InputFeature.clear(
+    //                         visibility:
+    //                             (InputFeatureVisibility.textNotEmpty &
+    //                                 InputFeatureVisibility.focused) |
+    //                             InputFeatureVisibility.hovered,
+    //                       ),
+    //                     ],
+    //                   ),
+    //                 ),
+    //                 const Gap(8),
+    //                 Tabs(
+    //                   index: tabIndex,
+    //                   children: const [
+    //                     TabItem(child: Text("All")),
+    //                     TabItem(child: Text("Active")),
+    //                     TabItem(child: Text("Archived")),
+    //                   ],
+    //                   onChanged: (int value) {
+    //                     setState(() {
+    //                       tabIndex = value;
+    //                     });
+    //                   },
+    //                 ),
+    //               ],
+    //             ),
+
+    //             const Gap(16),
+
+    //             IndexedStack(
+    //               index: tabIndex,
+    //               children: [
+    //                 Wrap(
+    //                   spacing: 16,
+    //                   runSpacing: 16,
+    //                   children: [
+    //                     for (final board in boards)
+    //                       ProjectCard(
+    //                         key: ValueKey(board.id),
+    //                         onTap: () => context.pushNamed(
+    //                           "kanbanProjectDetail",
+    //                           pathParameters: {"id": board.id},
+    //                         ),
+    //                         projectId: board.id,
+    //                         title: board.title,
+    //                         description: board.description,
+    //                         status: board.status,
+    //                         backgroundColor: board.backgroundColor,
+    //                         foregroundColor: board.foregroundColor,
+    //                         dueDate: board.dueDate,
+    //                       ),
+    //                     const CreateProjectCard(),
+    //                   ],
+    //                 ),
+    //                 Column(children: [const Text("Active")]),
+    //                 Column(children: [const Text("Archived")]),
+    //               ],
+    //             ),
+    //           ],
+    //         ),
+    //       ),
+    //     ),
+    //   ],
+    // );
   }
 }
 

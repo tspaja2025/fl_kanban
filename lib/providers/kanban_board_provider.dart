@@ -50,7 +50,7 @@ class KanbanNotifier extends AsyncNotifier<List<KanbanData>> {
                     description:
                         "Benchmarking the ease of movement in competing architect platforms.",
                     priority: TaskPriority.high,
-                    color: Colors.red,
+                    color: const Color(0xFFFCA5A5),
                     dueDate: DateTime(2026, 4, 10),
                   ),
                 ),
@@ -61,7 +61,7 @@ class KanbanNotifier extends AsyncNotifier<List<KanbanData>> {
                     description:
                         "Exporting all stroke-based icons for the new shadcn library.",
                     priority: TaskPriority.medium,
-                    color: Colors.orange,
+                    color: const Color(0xFFFCD34D),
                     dueDate: DateTime(2026, 4, 10),
                   ),
                 ),
@@ -80,7 +80,7 @@ class KanbanNotifier extends AsyncNotifier<List<KanbanData>> {
                     description:
                         "Refining the spring animations for the dashboard cards transitions.",
                     priority: TaskPriority.low,
-                    color: Colors.green,
+                    color: const Color(0xFF86EFAC),
                     dueDate: DateTime(2026, 4, 10),
                   ),
                 ),
@@ -99,7 +99,7 @@ class KanbanNotifier extends AsyncNotifier<List<KanbanData>> {
                     description:
                         "Security audit and 2FA implementation for enterprise users.",
                     priority: TaskPriority.high,
-                    color: Colors.red,
+                    color: const Color(0xFFFCA5A5),
                     dueDate: DateTime(2026, 4, 10),
                   ),
                 ),
@@ -129,7 +129,7 @@ class KanbanNotifier extends AsyncNotifier<List<KanbanData>> {
                     description:
                         "Benchmarking the ease of movement in competing architect platforms.",
                     priority: TaskPriority.high,
-                    color: Colors.red,
+                    color: const Color(0xFFFCA5A5),
                     dueDate: DateTime(2026, 4, 10),
                   ),
                 ),
@@ -140,7 +140,7 @@ class KanbanNotifier extends AsyncNotifier<List<KanbanData>> {
                     description:
                         "Exporting all stroke-based icons for the new shadcn library.",
                     priority: TaskPriority.medium,
-                    color: Colors.orange,
+                    color: const Color(0xFFFCD34D),
                     dueDate: DateTime(2026, 4, 10),
                   ),
                 ),
@@ -159,7 +159,7 @@ class KanbanNotifier extends AsyncNotifier<List<KanbanData>> {
                     description:
                         "Refining the spring animations for the dashboard cards transitions.",
                     priority: TaskPriority.low,
-                    color: Colors.green,
+                    color: const Color(0xFF86EFAC),
                     dueDate: DateTime(2026, 4, 10),
                   ),
                 ),
@@ -178,7 +178,7 @@ class KanbanNotifier extends AsyncNotifier<List<KanbanData>> {
                     description:
                         "Security audit and 2FA implementation for enterprise users.",
                     priority: TaskPriority.high,
-                    color: Colors.red,
+                    color: const Color(0xFFFCA5A5),
                     dueDate: DateTime(2026, 4, 10),
                   ),
                 ),
@@ -208,7 +208,7 @@ class KanbanNotifier extends AsyncNotifier<List<KanbanData>> {
                     description:
                         "Benchmarking the ease of movement in competing architect platforms.",
                     priority: TaskPriority.high,
-                    color: Colors.red,
+                    color: const Color(0xFFFCA5A5),
                     dueDate: DateTime(2026, 4, 10),
                   ),
                 ),
@@ -219,7 +219,7 @@ class KanbanNotifier extends AsyncNotifier<List<KanbanData>> {
                     description:
                         "Exporting all stroke-based icons for the new shadcn library.",
                     priority: TaskPriority.medium,
-                    color: Colors.orange,
+                    color: const Color(0xFFFCD34D),
                     dueDate: DateTime(2026, 4, 10),
                   ),
                 ),
@@ -238,7 +238,7 @@ class KanbanNotifier extends AsyncNotifier<List<KanbanData>> {
                     description:
                         "Refining the spring animations for the dashboard cards transitions.",
                     priority: TaskPriority.low,
-                    color: Colors.green,
+                    color: const Color(0xFF86EFAC),
                     dueDate: DateTime(2026, 4, 10),
                   ),
                 ),
@@ -257,7 +257,7 @@ class KanbanNotifier extends AsyncNotifier<List<KanbanData>> {
                     description:
                         "Security audit and 2FA implementation for enterprise users.",
                     priority: TaskPriority.high,
-                    color: Colors.red,
+                    color: const Color(0xFFFCA5A5),
                     dueDate: DateTime(2026, 4, 10),
                   ),
                 ),
@@ -288,7 +288,7 @@ class KanbanNotifier extends AsyncNotifier<List<KanbanData>> {
                     description:
                         "Benchmarking the ease of movement in competing architect platforms.",
                     priority: TaskPriority.high,
-                    color: Colors.red,
+                    color: const Color(0xFFFCA5A5),
                     dueDate: DateTime(2026, 4, 10),
                   ),
                 ),
@@ -299,7 +299,7 @@ class KanbanNotifier extends AsyncNotifier<List<KanbanData>> {
                     description:
                         "Exporting all stroke-based icons for the new shadcn library.",
                     priority: TaskPriority.medium,
-                    color: Colors.orange,
+                    color: const Color(0xFFFCD34D),
                     dueDate: DateTime(2026, 4, 10),
                   ),
                 ),
@@ -318,7 +318,7 @@ class KanbanNotifier extends AsyncNotifier<List<KanbanData>> {
                     description:
                         "Refining the spring animations for the dashboard cards transitions.",
                     priority: TaskPriority.low,
-                    color: Colors.green,
+                    color: const Color(0xFFFCD34D),
                     dueDate: DateTime(2026, 4, 10),
                   ),
                 ),
@@ -337,7 +337,7 @@ class KanbanNotifier extends AsyncNotifier<List<KanbanData>> {
                     description:
                         "Security audit and 2FA implementation for enterprise users.",
                     priority: TaskPriority.high,
-                    color: Colors.red,
+                    color: const Color(0xFFFCA5A5),
                     dueDate: DateTime(2026, 4, 10),
                   ),
                 ),
@@ -401,6 +401,7 @@ class KanbanNotifier extends AsyncNotifier<List<KanbanData>> {
   }
 
   Future<void> moveTask(
+    String projectId, // Add this parameter
     SortableData<KanbanTaskData> task,
     int targetColumnIndex,
     int targetTaskIndex,
@@ -409,14 +410,19 @@ class KanbanNotifier extends AsyncNotifier<List<KanbanData>> {
     if (projects == null || projects.isEmpty) return;
 
     final projectsList = List<KanbanData>.from(projects);
+    final projectIndex = projectsList.indexWhere((p) => p.id == projectId);
+
+    if (projectIndex == -1) return;
+
+    // Create a mutable copy of columns
     final columns = List<SortableData<KanbanColumnData>>.from(
-      projectsList[0].columns,
+      projectsList[projectIndex].columns,
     );
 
     SortableData<KanbanTaskData>? removedTask;
-    int sourceColumnIndex = -1;
+    int sourceColumnIndex = -1; // ignore: unused_local_variable
 
-    // Find and remove the task
+    // Find and remove the task from its current column
     for (int i = 0; i < columns.length; i++) {
       final taskIndex = columns[i].data.tasks.indexWhere((t) => t == task);
       if (taskIndex != -1) {
@@ -428,7 +434,7 @@ class KanbanNotifier extends AsyncNotifier<List<KanbanData>> {
 
     if (removedTask == null) return;
 
-    // Insert at new position
+    // Insert at new position in target column
     final targetColumn = columns[targetColumnIndex];
     if (targetTaskIndex >= targetColumn.data.tasks.length) {
       targetColumn.data.tasks.add(removedTask);
@@ -438,9 +444,11 @@ class KanbanNotifier extends AsyncNotifier<List<KanbanData>> {
 
     // Update state
     final newProjects = [
-      projectsList[0].copyWith(columns: columns),
-      ...projectsList.skip(1),
+      ...projectsList.take(projectIndex),
+      projectsList[projectIndex].copyWith(columns: columns),
+      ...projectsList.skip(projectIndex + 1),
     ];
+
     await _saveAndUpdate(newProjects);
   }
 

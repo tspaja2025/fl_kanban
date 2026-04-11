@@ -1,7 +1,6 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
-class Badge extends ConsumerWidget {
+class Badge extends StatelessWidget {
   final String text;
   final Color backgroundColor;
   final Color foregroundColor;
@@ -20,47 +19,23 @@ class Badge extends ConsumerWidget {
   });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    return Container(
-      decoration: BoxDecoration(
-        color: backgroundColor,
-        borderRadius: BorderRadius.circular(borderRadius),
-      ),
-      padding: padding,
-      child: Text(
-        text,
-        style: TextStyle(
-          color: foregroundColor,
-          fontSize: fontSize,
-          fontWeight: FontWeight.w500,
-        ),
-      ),
+  Widget build(BuildContext context) {
+    return PrimaryBadge(
+      style:
+          ButtonStyle.primary(
+                size: ButtonSize.small,
+                density: ButtonDensity.dense,
+                shape: ButtonShape.rectangle,
+              )
+              .withBackgroundColor(
+                color: backgroundColor,
+                hoverColor: backgroundColor,
+              )
+              .withForegroundColor(
+                color: foregroundColor,
+                hoverColor: foregroundColor,
+              ),
+      child: Text(text),
     );
   }
 }
-
-// class BadgeVariants {
-// //   static Badge success(String text) => Badge(
-// //     text: text,
-// //     backgroundColor: Color(0xFFDCFCE7),
-// //     foregroundColor: Color(0xFF166534),
-// //   );
-
-// //   static Badge warning(String text) => Badge(
-// //     text: text,
-// //     backgroundColor: Color(0xFFFEF9C3),
-// //     foregroundColor: Color(0xFF854D0E),
-// //   );
-
-// //   static Badge danger(String text) => Badge(
-// //     text: text,
-// //     backgroundColor: Color(0xFFFEE2E2),
-// //     foregroundColor: Color(0xFF991B1B),
-// //   );
-
-// //   static Badge info(String text) => Badge(
-// //     text: text,
-// //     backgroundColor: Color(0xFFE0F2FE),
-// //     foregroundColor: Color(0xFF075985),
-// //   );
-// // }

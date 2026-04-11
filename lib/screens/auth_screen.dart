@@ -70,7 +70,7 @@ class SignInForm extends ConsumerWidget {
                   label: const Text("Password"),
                   trailingLabel: LinkButton(
                     onPressed: () {
-                      notifier.state = AuthMode.forgotPassword;
+                      notifier.setMode(AuthMode.forgotPassword);
                     },
                     density: ButtonDensity.iconDense,
                     child: const Text("Forgot password?"),
@@ -83,7 +83,7 @@ class SignInForm extends ConsumerWidget {
                 const Gap(16),
                 PrimaryButton(
                   onPressed: () {
-                    context.pushNamed("projects");
+                    context.goNamed("projects");
                   },
                   alignment: Alignment.center,
                   child: const Text("Sign In"),
@@ -93,7 +93,7 @@ class SignInForm extends ConsumerWidget {
                 const Gap(16),
                 OutlineButton(
                   onPressed: () {
-                    context.pushNamed("projects");
+                    context.goNamed("projects");
                   },
                   alignment: Alignment.center,
                   child: const Text("Google"),
@@ -101,7 +101,7 @@ class SignInForm extends ConsumerWidget {
                 const Gap(16),
                 OutlineButton(
                   onPressed: () {
-                    context.pushNamed("projects");
+                    context.goNamed("projects");
                   },
                   alignment: Alignment.center,
                   child: const Text("Github"),
@@ -117,7 +117,7 @@ class SignInForm extends ConsumerWidget {
               const Gap(4),
               LinkButton(
                 onPressed: () {
-                  notifier.state = AuthMode.signUp;
+                  notifier.setMode(AuthMode.signUp);
                 },
                 density: ButtonDensity.iconDense,
                 child: const Text("Sign Up"),
@@ -183,7 +183,7 @@ class SignUpForm extends ConsumerWidget {
                 const Gap(16),
                 PrimaryButton(
                   onPressed: () {
-                    context.pushNamed("projects");
+                    context.goNamed("projects");
                   },
                   alignment: Alignment.center,
                   child: const Text("Sign Up"),
@@ -199,7 +199,7 @@ class SignUpForm extends ConsumerWidget {
               const Gap(4),
               LinkButton(
                 onPressed: () {
-                  notifier.state = AuthMode.signIn;
+                  notifier.setMode(AuthMode.signIn);
                 },
                 density: ButtonDensity.iconDense,
                 child: const Text("Sign In"),
@@ -259,7 +259,7 @@ class ForgotPasswordForm extends ConsumerWidget {
                         );
                       },
                     );
-                    notifier.state = AuthMode.signIn;
+                    notifier.setMode(AuthMode.signIn);
                   },
                   alignment: Alignment.center,
                   child: const Text("Send Instructions"),
@@ -275,7 +275,7 @@ class ForgotPasswordForm extends ConsumerWidget {
               const Gap(4),
               LinkButton(
                 onPressed: () {
-                  notifier.state = AuthMode.signIn;
+                  notifier.setMode(AuthMode.signIn);
                 },
                 density: ButtonDensity.iconDense,
                 child: const Text("Sign In"),

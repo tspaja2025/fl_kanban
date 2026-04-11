@@ -48,9 +48,9 @@ class KanbanData {
       "id": id,
       "title": title,
       "description": description,
-      "status": status,
-      "backgroundColor": backgroundColor,
-      "foregroundColor": foregroundColor,
+      "status": status.index,
+      "backgroundColor": backgroundColor.value,
+      "foregroundColor": foregroundColor.value,
       "dueDate": dueDate,
       "columns": columns.map((col) => col.data.toJson()).toList(),
     };
@@ -63,7 +63,7 @@ class KanbanData {
       description: json["description"] as String,
       status: ProjectStatus.values[json["status"] as int],
       backgroundColor: Color(json["backgroundColor"] as int),
-      foregroundColor: Color(json["foregroundCOlor"] as int),
+      foregroundColor: Color(json["foregroundColor"] as int),
       dueDate: json["dueDate"] as String,
       columns: (json["columns"] as List)
           .map((colJson) => SortableData(KanbanColumnData.fromJson(colJson)))
@@ -157,7 +157,7 @@ class KanbanTaskData {
       'title': title,
       'description': description,
       'priority': priority.index,
-      'color': color,
+      'color': color?.value,
       'dueDate': dueDate?.toIso8601String(),
     };
   }
@@ -176,9 +176,11 @@ class KanbanTaskData {
   }
 }
 
-enum TaskPriority { high, medium, low }
+enum TaskPriority {
+  high,
+  medium,
+  low;
 
-extension TaskPriorityExtension on TaskPriority {
   String get displayName {
     switch (this) {
       case TaskPriority.high:
@@ -193,18 +195,26 @@ extension TaskPriorityExtension on TaskPriority {
   Color get color {
     switch (this) {
       case TaskPriority.high:
-        return Colors.red;
+        return const Color(0xFFFCA5A5);
       case TaskPriority.medium:
-        return Colors.orange;
+        return const Color(0xFFFCD34D);
       case TaskPriority.low:
-        return Colors.green;
+        return const Color(0xFF86EFAC);
     }
+  }
+
+  String toJson() => name;
+
+  static TaskPriority fromJson(String json) {
+    return values.firstWhere((e) => e.name == json, orElse: () => medium);
   }
 }
 
-enum ProjectStatus { delayed, inProgress, completed }
+enum ProjectStatus {
+  delayed,
+  inProgress,
+  completed;
 
-extension ProjectStatusExtension on ProjectStatus {
   String get displayName {
     switch (this) {
       case ProjectStatus.delayed:
@@ -214,5 +224,11 @@ extension ProjectStatusExtension on ProjectStatus {
       case ProjectStatus.completed:
         return "Completed";
     }
+  }
+
+  String toJson() => name;
+
+  static ProjectStatus fromJson(String json) {
+    return values.firstWhere((e) => e.name == json, orElse: () => inProgress);
   }
 }
