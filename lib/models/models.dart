@@ -8,6 +8,7 @@ class KanbanData {
   final Color backgroundColor;
   final Color foregroundColor;
   final String dueDate;
+  final List<TeamMember> teamMembers;
   final List<SortableData<KanbanColumnData>> columns;
 
   const KanbanData({
@@ -18,6 +19,7 @@ class KanbanData {
     this.backgroundColor = const Color(0xFFE0F2FE),
     this.foregroundColor = const Color(0xFF075985),
     required this.dueDate,
+    this.teamMembers = const [],
     required this.columns,
   });
 
@@ -29,6 +31,7 @@ class KanbanData {
     Color? backgroundColor,
     Color? foregroundColor,
     String? dueDate,
+    List<TeamMember>? teamMembers,
     List<SortableData<KanbanColumnData>>? columns,
   }) {
     return KanbanData(
@@ -39,6 +42,7 @@ class KanbanData {
       backgroundColor: backgroundColor ?? this.backgroundColor,
       foregroundColor: foregroundColor ?? this.foregroundColor,
       dueDate: dueDate ?? this.dueDate,
+      teamMembers: teamMembers ?? this.teamMembers,
       columns: columns ?? this.columns,
     );
   }
@@ -52,6 +56,7 @@ class KanbanData {
       "backgroundColor": backgroundColor.value,
       "foregroundColor": foregroundColor.value,
       "dueDate": dueDate,
+      "teamMembers": teamMembers,
       "columns": columns.map((col) => col.data.toJson()).toList(),
     };
   }
@@ -65,10 +70,39 @@ class KanbanData {
       backgroundColor: Color(json["backgroundColor"] as int),
       foregroundColor: Color(json["foregroundColor"] as int),
       dueDate: json["dueDate"] as String,
+      teamMembers: json["teamMembers"],
       columns: (json["columns"] as List)
           .map((colJson) => SortableData(KanbanColumnData.fromJson(colJson)))
           .toList(),
     );
+  }
+
+  bool hasTeamMember(String memberId) {
+    return teamMembers.any((member) => member.id == memberId);
+  }
+
+  int get teamMemberCount => teamMembers.length;
+}
+
+class TeamMember {
+  final String id;
+  final String name;
+  final String email;
+  final Color avatarColor;
+
+  const TeamMember({
+    required this.id,
+    required this.name,
+    required this.email,
+    required this.avatarColor,
+  });
+
+  String get initials {
+    final parts = name.split(" ");
+    if (parts.length >= 2) {
+      return "${parts[0][0]}${parts[1][0]}".toUpperCase();
+    }
+    return name.substring(0, 2).toUpperCase();
   }
 }
 

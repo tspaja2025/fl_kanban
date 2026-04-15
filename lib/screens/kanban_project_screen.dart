@@ -72,6 +72,7 @@ class _KanbanProjectScreenState extends ConsumerState<KanbanProjectScreen> {
                                 backgroundColor: board.backgroundColor,
                                 foregroundColor: board.foregroundColor,
                                 dueDate: board.dueDate,
+                                teamMembers: board.teamMembers,
                               ),
                             const CreateProjectCard(),
                           ],
@@ -88,42 +89,93 @@ class _KanbanProjectScreenState extends ConsumerState<KanbanProjectScreen> {
         );
       },
       loading: () => const Center(child: CircularProgressIndicator()),
-      error: (error, stack) => Center(child: Text('Error: $error')),
+      error: (error, stack) => Center(child: Text("Error: $error")),
     );
   }
 }
 
-class NewProjectForm extends ConsumerWidget {
+class NewProjectForm extends ConsumerStatefulWidget {
   final GlobalKey<FormState> formKey;
   final TextEditingController titleController;
   final TextEditingController descriptionController;
+  final List<TeamMember> initialMembers;
+  final Function(List<TeamMember>)? onMembersChanged;
 
   const NewProjectForm({
     super.key,
     required this.formKey,
     required this.titleController,
     required this.descriptionController,
+    this.initialMembers = const [],
+    this.onMembersChanged,
   });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<NewProjectForm> createState() => _NewProjectFormState();
+}
+
+class _NewProjectFormState extends ConsumerState<NewProjectForm> {
+  DateTime? _value;
+  late List<TeamMember> _teamMembers;
+
+  @override
+  void initState() {
+    super.initState();
+    _teamMembers = List.from(widget.initialMembers);
+  }
+
+  List<TeamMember> get teamMembers => _teamMembers;
+
+  @override
+  Widget build(BuildContext context) {
     return ConstrainedBox(
       constraints: const BoxConstraints(maxWidth: 400),
       child: Form(
-        key: formKey,
+        key: widget.formKey,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             FormField(
               key: const FormKey(#title),
               label: const Text("Title"),
-              child: TextField(controller: titleController),
+              child: TextField(controller: widget.titleController),
             ),
             const Gap(KanbanConstants.gapSize),
             FormField(
               key: const FormKey(#description),
               label: const Text("Description"),
-              child: TextArea(controller: descriptionController, maxLines: 3),
+              child: TextArea(
+                controller: widget.descriptionController,
+                maxLines: 3,
+              ),
+            ),
+            const Gap(KanbanConstants.gapSize),
+            FormField(
+              key: const FormKey(#dueDate),
+              label: const Text("Due Date"),
+              child: DatePicker(
+                value: _value,
+                mode: PromptMode.popover,
+                // Disable selecting dates after "today".
+                stateBuilder: (date) {
+                  return DateState.enabled;
+                },
+                onChanged: (value) {
+                  setState(() {
+                    _value = value;
+                  });
+                },
+              ),
+            ),
+            const Gap(KanbanConstants.gapSize),
+            TeamMemberSelector(
+              selectedMembers: _teamMembers,
+              onMembersChanged: (newMembers) {
+                setState(() {
+                  _teamMembers = newMembers;
+                  widget.onMembersChanged?.call(newMembers);
+                });
+              },
             ),
           ],
         ),
@@ -132,7 +184,7 @@ class NewProjectForm extends ConsumerWidget {
   }
 }
 
-class ProjectCard extends ConsumerWidget {
+class ProjectCard extends ConsumerStatefulWidget {
   final String projectId;
   final VoidCallback onTap;
   final String title;
@@ -141,6 +193,7 @@ class ProjectCard extends ConsumerWidget {
   final Color backgroundColor;
   final Color foregroundColor;
   final String dueDate;
+  final List<TeamMember> teamMembers;
 
   const ProjectCard({
     super.key,
@@ -152,45 +205,39 @@ class ProjectCard extends ConsumerWidget {
     this.backgroundColor = const Color(0xFFE0F2FE),
     this.foregroundColor = const Color(0xFF075985),
     required this.dueDate,
+    this.teamMembers = const [],
   });
 
+  @override
+  ConsumerState<ProjectCard> createState() => _ProjectCardState();
+}
+
+class _ProjectCardState extends ConsumerState<ProjectCard> {
   List<AvatarWidget> getAvatars() {
-    return [
-      Avatar(
-        initials: Avatar.getInitials("TS"),
-        backgroundColor: Colors.red,
+    return widget.teamMembers.take(4).map((member) {
+      return Avatar(
+        initials: member.initials,
+        backgroundColor: member.avatarColor,
         size: 24,
-      ),
-      Avatar(
-        initials: Avatar.getInitials("TS"),
-        backgroundColor: Colors.green,
-        size: 24,
-      ),
-      Avatar(
-        initials: Avatar.getInitials("TS"),
-        backgroundColor: Colors.blue,
-        size: 24,
-      ),
-      Avatar(
-        initials: Avatar.getInitials("TS"),
-        backgroundColor: Colors.yellow,
-        size: 24,
-      ),
-    ];
+      );
+    }).toList();
   }
 
+  int get remainingMembersCount =>
+      widget.teamMembers.length > 4 ? widget.teamMembers.length - 4 : 0;
+
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     return CardContainer(
-      onTap: onTap,
+      onTap: widget.onTap,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _buildHeader(ref),
           const Gap(16),
-          Text(title).large.semiBold,
+          Text(widget.title).large.semiBold,
           const Gap(16),
-          Text(description),
+          Text(widget.description),
           const Gap(16),
           const Divider(),
           const Gap(16),
@@ -206,9 +253,9 @@ class ProjectCard extends ConsumerWidget {
     return Row(
       children: [
         Badge(
-          text: status.displayName,
-          backgroundColor: backgroundColor,
-          foregroundColor: foregroundColor,
+          text: widget.status.displayName,
+          backgroundColor: widget.backgroundColor,
+          foregroundColor: widget.foregroundColor,
         ),
         const Spacer(),
         Builder(
@@ -231,9 +278,10 @@ class ProjectCard extends ConsumerWidget {
                             _showEditProjectDialog(
                               context,
                               ref,
-                              projectId,
-                              title,
-                              description,
+                              widget.projectId,
+                              widget.title,
+                              widget.description,
+                              widget.teamMembers,
                             );
                           },
                           child: const Text("Edit Project"),
@@ -250,7 +298,7 @@ class ProjectCard extends ConsumerWidget {
                                 return AlertDialog(
                                   title: const Text("Delete Project"),
                                   content: Text(
-                                    "Are you sure you want to delete '$title'? This action cannot be undone.",
+                                    "Are you sure you want to delete '{$widget.title}'? This action cannot be undone.",
                                   ),
                                   actions: [
                                     OutlineButton(
@@ -260,15 +308,13 @@ class ProjectCard extends ConsumerWidget {
                                     ),
                                     PrimaryButton(
                                       onPressed: () {
-                                        Navigator.pop(
-                                          dialogContext,
-                                        ); // Close confirmation dialog
+                                        Navigator.pop(dialogContext);
 
-                                        // Delete the project
-                                        notifier.deleteProject(projectId);
+                                        notifier.deleteProject(
+                                          widget.projectId,
+                                        );
 
-                                        // Show toast notification
-                                        _showDeleteToast(context, title);
+                                        _showDeleteToast(context, widget.title);
                                       },
                                       child: const Text("Delete"),
                                     ),
@@ -295,9 +341,12 @@ class ProjectCard extends ConsumerWidget {
   Widget _buildFooter() {
     return Row(
       children: [
-        AvatarGroup.toLeft(children: getAvatars()),
+        if (widget.teamMembers.isNotEmpty)
+          Expanded(child: AvatarGroup.toLeft(children: getAvatars()))
+        else
+          const Text("No team members assigned").muted.small,
         const Spacer(),
-        Text(dueDate).muted,
+        Text(widget.dueDate).muted,
       ],
     );
   }
@@ -338,12 +387,14 @@ class ProjectCard extends ConsumerWidget {
     String projectId,
     String currentTitle,
     String currentDescription,
+    List<TeamMember> currentMembers,
   ) {
     final formKey = GlobalKey<FormState>();
     final titleController = TextEditingController(text: currentTitle);
     final descriptionController = TextEditingController(
       text: currentDescription,
     );
+    List<TeamMember> selectedMembers = List.from(currentMembers);
 
     showDialog(
       context: context,
@@ -354,6 +405,11 @@ class ProjectCard extends ConsumerWidget {
             formKey: formKey,
             titleController: titleController,
             descriptionController: descriptionController,
+            onMembersChanged: (members) {
+              setState(() {
+                selectedMembers = members;
+              });
+            },
           ),
           actions: [
             OutlineButton(
@@ -366,20 +422,18 @@ class ProjectCard extends ConsumerWidget {
                   id: projectId,
                   title: titleController.text,
                   description: descriptionController.text,
-                  status: ProjectStatus
-                      .inProgress, // Keep existing status or add status picker
+                  status: ProjectStatus.inProgress,
                   backgroundColor: const Color(0xFFE0F2FE),
                   foregroundColor: const Color(0xFF075985),
                   dueDate: "3 days left",
-                  columns: [], // You should fetch existing columns
+                  teamMembers: selectedMembers,
+                  columns: [],
                 );
 
                 Navigator.pop(dialogContext);
 
-                // You need to add this method to your KanbanNotifier
                 ref.read(kanbanProvider.notifier).updateProject(updatedProject);
 
-                // Show success toast
                 WidgetsBinding.instance.addPostFrameCallback((_) {
                   if (!context.mounted) return;
 
@@ -442,70 +496,280 @@ class CreateProjectCard extends ConsumerWidget {
     final formKey = GlobalKey<FormState>();
     final titleController = TextEditingController();
     final descriptionController = TextEditingController();
+    List<TeamMember> selectedMembers = [];
 
     showDialog(
       context: context,
       builder: (dialogContext) {
-        return AlertDialog(
-          title: const Text("New Project"),
-          content: NewProjectForm(
-            formKey: formKey,
-            titleController: titleController,
-            descriptionController: descriptionController,
-          ),
-          actions: [
-            OutlineButton(
-              onPressed: () => Navigator.pop(dialogContext),
-              child: const Text("Cancel"),
-            ),
-            PrimaryButton(
-              onPressed: () {
-                final newProject = KanbanData(
-                  id: DateTime.now().millisecondsSinceEpoch.toString(),
-                  title: titleController.text,
-                  description: descriptionController.text,
-                  status: ProjectStatus.inProgress,
-                  backgroundColor: const Color(0xFFE0F2FE),
-                  foregroundColor: const Color(0xFF075985),
-                  dueDate: "3 days left",
-                  columns: [],
-                );
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              title: const Text("New Project"),
+              content: NewProjectForm(
+                formKey: formKey,
+                titleController: titleController,
+                descriptionController: descriptionController,
+                onMembersChanged: (members) {
+                  setState(() {
+                    selectedMembers = members;
+                  });
+                },
+              ),
+              actions: [
+                OutlineButton(
+                  onPressed: () => Navigator.pop(dialogContext),
+                  child: const Text("Cancel"),
+                ),
+                PrimaryButton(
+                  onPressed: () {
+                    final newProject = KanbanData(
+                      id: DateTime.now().millisecondsSinceEpoch.toString(),
+                      title: titleController.text,
+                      description: descriptionController.text,
+                      status: ProjectStatus.inProgress,
+                      backgroundColor: const Color(0xFFE0F2FE),
+                      foregroundColor: const Color(0xFF075985),
+                      dueDate: "3 days left",
+                      teamMembers: selectedMembers,
+                      columns: [],
+                    );
 
-                Navigator.pop(dialogContext);
+                    Navigator.pop(dialogContext);
 
-                WidgetsBinding.instance.addPostFrameCallback((_) {
-                  if (!context.mounted) return;
+                    WidgetsBinding.instance.addPostFrameCallback((_) {
+                      if (!context.mounted) return;
 
-                  showToast(
-                    context: context,
-                    location: ToastLocation.bottomRight,
-                    builder: (BuildContext toastContext, ToastOverlay overlay) {
-                      return SurfaceCard(
-                        child: Basic(
-                          trailing: PrimaryButton(
-                            size: ButtonSize.small,
-                            onPressed: () {
-                              overlay.close();
-                            },
-                            child: const Text("Close"),
-                          ),
-                          title: Text("Created project: ${newProject.title}"),
-                          subtitle: const Text(
-                            "Your new project has been added successfully.",
-                          ),
-                        ),
+                      showToast(
+                        context: context,
+                        location: ToastLocation.bottomRight,
+                        builder: (BuildContext toastContext, ToastOverlay overlay) {
+                          return SurfaceCard(
+                            child: Basic(
+                              trailing: PrimaryButton(
+                                size: ButtonSize.small,
+                                onPressed: () {
+                                  overlay.close();
+                                },
+                                child: const Text("Close"),
+                              ),
+                              title: Text(
+                                "Created project: ${newProject.title}",
+                              ),
+                              subtitle: const Text(
+                                "Your new project has been added successfully.",
+                              ),
+                            ),
+                          );
+                        },
                       );
-                    },
-                  );
-                });
+                    });
 
-                ref.read(kanbanProvider.notifier).addProject(newProject);
-              },
-              child: const Text("Create"),
-            ),
-          ],
+                    ref.read(kanbanProvider.notifier).addProject(newProject);
+                  },
+                  child: const Text("Create"),
+                ),
+              ],
+            );
+          },
         );
       },
+    );
+  }
+}
+
+class TeamMemberSelector extends ConsumerStatefulWidget {
+  final List<TeamMember> selectedMembers;
+  final ValueChanged<List<TeamMember>> onMembersChanged;
+
+  const TeamMemberSelector({
+    super.key,
+    required this.selectedMembers,
+    required this.onMembersChanged,
+  });
+
+  @override
+  ConsumerState<TeamMemberSelector> createState() => _TeamMemberSelector();
+}
+
+class _TeamMemberSelector extends ConsumerState<TeamMemberSelector> {
+  final TextEditingController _searchController = TextEditingController();
+  String _searchQuery = "";
+
+  final List<TeamMember> _availableMembers = [
+    const TeamMember(
+      id: "1",
+      name: "Alice Johnson",
+      email: "alice@example.com",
+      avatarColor: Color(0xFFE0F2FE),
+    ),
+    const TeamMember(
+      id: "2",
+      name: "Bob Smith",
+      email: "bob@example.com",
+      avatarColor: Color(0xFFDCFCE7),
+    ),
+    const TeamMember(
+      id: "3",
+      name: "Carol Davis",
+      email: "carol@example.com",
+      avatarColor: Color(0xFFFEE2E2),
+    ),
+  ];
+
+  List<TeamMember> get _filteredMembers {
+    if (_searchQuery.isEmpty) return _availableMembers;
+    return _availableMembers
+        .where(
+          (member) =>
+              member.name.toLowerCase().contains(_searchQuery.toLowerCase()) ||
+              member.email.toLowerCase().contains(_searchQuery.toLowerCase()),
+        )
+        .toList();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text("Team Members").medium.semiBold,
+        const Gap(8),
+
+        // Selected members chips
+        if (widget.selectedMembers.isNotEmpty)
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              for (final member in widget.selectedMembers)
+                Chip(
+                  leading: Avatar(
+                    initials: member.initials,
+                    backgroundColor: member.avatarColor,
+                    size: 24,
+                  ),
+                  child: Text(member.name),
+                  onPressed: () {
+                    final newMembers = List<TeamMember>.from(
+                      widget.selectedMembers,
+                    )..remove(member);
+                    widget.onMembersChanged(newMembers);
+                  },
+                ),
+            ],
+          ),
+
+        const Gap(8),
+
+        // Add member button
+        Builder(
+          builder: (context) {
+            return OutlineButton(
+              onPressed: () {
+                showDialog(
+                  context: context,
+                  builder: (dialogContext) {
+                    return StatefulBuilder(
+                      builder: (context, setDialogState) {
+                        return AlertDialog(
+                          title: const Text("Add Team Members"),
+                          content: SizedBox(
+                            width: 300,
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                TextField(
+                                  controller: _searchController,
+                                  placeholder: const Text("Search members..."),
+                                  onChanged: (value) {
+                                    setDialogState(() {
+                                      _searchQuery = value;
+                                    });
+                                  },
+                                ),
+                                const Gap(16),
+                                ConstrainedBox(
+                                  constraints: const BoxConstraints(
+                                    maxHeight: 300,
+                                  ),
+                                  child: ListView(
+                                    children: [
+                                      for (final member in _filteredMembers)
+                                        if (!widget.selectedMembers.contains(
+                                          member,
+                                        ))
+                                          Card(
+                                            child: Row(
+                                              children: [
+                                                Avatar(
+                                                  initials: member.initials,
+                                                  backgroundColor:
+                                                      member.avatarColor,
+                                                  size: 32,
+                                                ),
+                                                Column(
+                                                  crossAxisAlignment:
+                                                      CrossAxisAlignment.start,
+                                                  children: [
+                                                    Text(member.name),
+                                                    Text(
+                                                      member.email,
+                                                    ).small.muted,
+                                                  ],
+                                                ),
+                                                const Spacer(),
+                                                IconButton.ghost(
+                                                  onPressed: () {
+                                                    final newMembers =
+                                                        List<TeamMember>.from(
+                                                          widget
+                                                              .selectedMembers,
+                                                        )..add(member);
+                                                    widget.onMembersChanged(
+                                                      newMembers,
+                                                    );
+                                                    Navigator.pop(
+                                                      dialogContext,
+                                                    );
+                                                  },
+                                                  icon: const Icon(
+                                                    LucideIcons.plus,
+                                                    size: 16,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          actions: [
+                            OutlineButton(
+                              onPressed: () => Navigator.pop(dialogContext),
+                              child: const Text("Close"),
+                            ),
+                          ],
+                        );
+                      },
+                    );
+                  },
+                );
+              },
+              child: const Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(LucideIcons.userPlus, size: 16),
+                  Gap(8),
+                  Text("Add Team Member"),
+                ],
+              ),
+            );
+          },
+        ),
+      ],
     );
   }
 }
