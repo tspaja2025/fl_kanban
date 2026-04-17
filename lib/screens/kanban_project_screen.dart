@@ -4,6 +4,7 @@ import 'package:fl_kanban/providers/kanban_board_provider.dart';
 import 'package:fl_kanban/widgets/badge.dart';
 import 'package:fl_kanban/widgets/card_container.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:go_router/go_router.dart';
 
@@ -99,6 +100,7 @@ class NewProjectForm extends ConsumerStatefulWidget {
   final TextEditingController titleController;
   final TextEditingController descriptionController;
   final List<TeamMember> initialMembers;
+  final String? initialDueDate;
   final Function(List<TeamMember>)? onMembersChanged;
 
   const NewProjectForm({
@@ -107,6 +109,7 @@ class NewProjectForm extends ConsumerStatefulWidget {
     required this.titleController,
     required this.descriptionController,
     this.initialMembers = const [],
+    this.initialDueDate,
     this.onMembersChanged,
   });
 
@@ -115,7 +118,7 @@ class NewProjectForm extends ConsumerStatefulWidget {
 }
 
 class _NewProjectFormState extends ConsumerState<NewProjectForm> {
-  DateTime? _value;
+  DateTime? _dueDate;
   late List<TeamMember> _teamMembers;
 
   @override
@@ -125,6 +128,7 @@ class _NewProjectFormState extends ConsumerState<NewProjectForm> {
   }
 
   List<TeamMember> get teamMembers => _teamMembers;
+  DateTime? get dueDate => _dueDate;
 
   @override
   Widget build(BuildContext context) {
@@ -154,7 +158,7 @@ class _NewProjectFormState extends ConsumerState<NewProjectForm> {
               key: const FormKey(#dueDate),
               label: const Text("Due Date"),
               child: DatePicker(
-                value: _value,
+                value: _dueDate,
                 mode: PromptMode.popover,
                 // Disable selecting dates after "today".
                 stateBuilder: (date) {
@@ -162,7 +166,7 @@ class _NewProjectFormState extends ConsumerState<NewProjectForm> {
                 },
                 onChanged: (value) {
                   setState(() {
-                    _value = value;
+                    _dueDate = value;
                   });
                 },
               ),
@@ -192,7 +196,7 @@ class ProjectCard extends ConsumerStatefulWidget {
   final ProjectStatus status;
   final Color backgroundColor;
   final Color foregroundColor;
-  final String dueDate;
+  final String? dueDate;
   final List<TeamMember> teamMembers;
 
   const ProjectCard({
@@ -282,6 +286,7 @@ class _ProjectCardState extends ConsumerState<ProjectCard> {
                               widget.title,
                               widget.description,
                               widget.teamMembers,
+                              widget.dueDate,
                             );
                           },
                           child: const Text("Edit Project"),
@@ -298,7 +303,7 @@ class _ProjectCardState extends ConsumerState<ProjectCard> {
                                 return AlertDialog(
                                   title: const Text("Delete Project"),
                                   content: Text(
-                                    "Are you sure you want to delete '{$widget.title}'? This action cannot be undone.",
+                                    "Are you sure you want to delete ${widget.title}? This action cannot be undone.",
                                   ),
                                   actions: [
                                     OutlineButton(
@@ -346,7 +351,7 @@ class _ProjectCardState extends ConsumerState<ProjectCard> {
         else
           const Text("No team members assigned").muted.small,
         const Spacer(),
-        Text(widget.dueDate).muted,
+        Text("${widget.dueDate}").muted,
       ],
     );
   }
@@ -388,6 +393,7 @@ class _ProjectCardState extends ConsumerState<ProjectCard> {
     String currentTitle,
     String currentDescription,
     List<TeamMember> currentMembers,
+    String? currentDueDate,
   ) {
     final formKey = GlobalKey<FormState>();
     final titleController = TextEditingController(text: currentTitle);
@@ -395,6 +401,7 @@ class _ProjectCardState extends ConsumerState<ProjectCard> {
       text: currentDescription,
     );
     List<TeamMember> selectedMembers = List.from(currentMembers);
+    String? selectedDueDate = currentDueDate;
 
     showDialog(
       context: context,
@@ -405,6 +412,7 @@ class _ProjectCardState extends ConsumerState<ProjectCard> {
             formKey: formKey,
             titleController: titleController,
             descriptionController: descriptionController,
+            initialDueDate: selectedDueDate,
             onMembersChanged: (members) {
               setState(() {
                 selectedMembers = members;
@@ -425,7 +433,7 @@ class _ProjectCardState extends ConsumerState<ProjectCard> {
                   status: ProjectStatus.inProgress,
                   backgroundColor: const Color(0xFFE0F2FE),
                   foregroundColor: const Color(0xFF075985),
-                  dueDate: "3 days left",
+                  dueDate: selectedDueDate,
                   teamMembers: selectedMembers,
                   columns: [],
                 );
@@ -492,14 +500,14 @@ class CreateProjectCard extends ConsumerWidget {
     );
   }
 
-  void _showNewProjectDialog(BuildContext context, WidgetRef ref) {
+  void _showNewProjectDialog(BuildContext parentContext, WidgetRef ref) {
     final formKey = GlobalKey<FormState>();
     final titleController = TextEditingController();
     final descriptionController = TextEditingController();
     List<TeamMember> selectedMembers = [];
 
     showDialog(
-      context: context,
+      context: parentContext,
       builder: (dialogContext) {
         return StatefulBuilder(
           builder: (context, setState) {
@@ -529,7 +537,9 @@ class CreateProjectCard extends ConsumerWidget {
                       status: ProjectStatus.inProgress,
                       backgroundColor: const Color(0xFFE0F2FE),
                       foregroundColor: const Color(0xFF075985),
-                      dueDate: "3 days left",
+                      dueDate: DateFormat.yMd().format(
+                        DateTime.now().add(const Duration(days: 3)),
+                      ),
                       teamMembers: selectedMembers,
                       columns: [],
                     );
@@ -540,7 +550,7 @@ class CreateProjectCard extends ConsumerWidget {
                       if (!context.mounted) return;
 
                       showToast(
-                        context: context,
+                        context: parentContext,
                         location: ToastLocation.bottomRight,
                         builder: (BuildContext toastContext, ToastOverlay overlay) {
                           return SurfaceCard(
@@ -635,7 +645,6 @@ class _TeamMemberSelector extends ConsumerState<TeamMemberSelector> {
         const Text("Team Members").medium.semiBold,
         const Gap(8),
 
-        // Selected members chips
         if (widget.selectedMembers.isNotEmpty)
           Wrap(
             spacing: 8,
@@ -661,7 +670,6 @@ class _TeamMemberSelector extends ConsumerState<TeamMemberSelector> {
 
         const Gap(8),
 
-        // Add member button
         Builder(
           builder: (context) {
             return OutlineButton(

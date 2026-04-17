@@ -1,6 +1,7 @@
 import 'package:fl_kanban/models/models.dart';
 import 'package:fl_kanban/service/storage_service.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 final kanbanProvider = AsyncNotifierProvider<KanbanNotifier, List<KanbanData>>(
@@ -36,7 +37,29 @@ class KanbanNotifier extends AsyncNotifier<List<KanbanData>> {
         status: ProjectStatus.inProgress,
         backgroundColor: const Color(0xFFE0F2FE),
         foregroundColor: const Color(0xFF075985),
-        dueDate: "3 days left",
+        dueDate: DateFormat.yMd().format(
+          DateTime.now().add(const Duration(days: 3)),
+        ),
+        teamMembers: [
+          TeamMember(
+            id: "1",
+            name: "Alice Johnson",
+            email: "alice@example.com",
+            avatarColor: Color(0xFFE0F2FE),
+          ),
+          TeamMember(
+            id: "2",
+            name: "Bob Smith",
+            email: "bob@example.com",
+            avatarColor: Color(0xFFDCFCE7),
+          ),
+          TeamMember(
+            id: "3",
+            name: "Carol Davis",
+            email: "carol@example.com",
+            avatarColor: Color(0xFFFEE2E2),
+          ),
+        ],
         columns: [
           SortableData(
             KanbanColumnData(
@@ -115,7 +138,29 @@ class KanbanNotifier extends AsyncNotifier<List<KanbanData>> {
         status: ProjectStatus.completed,
         backgroundColor: Color(0xFFDCFCE7),
         foregroundColor: Color(0xFF166534),
-        dueDate: "3 days left",
+        dueDate: DateFormat.yMd().format(
+          DateTime.now().add(const Duration(days: 3)),
+        ),
+        teamMembers: [
+          TeamMember(
+            id: "1",
+            name: "Alice Johnson",
+            email: "alice@example.com",
+            avatarColor: Color(0xFFE0F2FE),
+          ),
+          TeamMember(
+            id: "2",
+            name: "Bob Smith",
+            email: "bob@example.com",
+            avatarColor: Color(0xFFDCFCE7),
+          ),
+          TeamMember(
+            id: "3",
+            name: "Carol Davis",
+            email: "carol@example.com",
+            avatarColor: Color(0xFFFEE2E2),
+          ),
+        ],
         columns: [
           SortableData(
             KanbanColumnData(
@@ -194,7 +239,29 @@ class KanbanNotifier extends AsyncNotifier<List<KanbanData>> {
         status: ProjectStatus.delayed,
         backgroundColor: Color(0xFFFEE2E2),
         foregroundColor: Color(0xFF991B1B),
-        dueDate: "3 days left",
+        dueDate: DateFormat.yMd().format(
+          DateTime.now().add(const Duration(days: 3)),
+        ),
+        teamMembers: [
+          TeamMember(
+            id: "1",
+            name: "Alice Johnson",
+            email: "alice@example.com",
+            avatarColor: Color(0xFFE0F2FE),
+          ),
+          TeamMember(
+            id: "2",
+            name: "Bob Smith",
+            email: "bob@example.com",
+            avatarColor: Color(0xFFDCFCE7),
+          ),
+          TeamMember(
+            id: "3",
+            name: "Carol Davis",
+            email: "carol@example.com",
+            avatarColor: Color(0xFFFEE2E2),
+          ),
+        ],
         columns: [
           SortableData(
             KanbanColumnData(
@@ -274,7 +341,29 @@ class KanbanNotifier extends AsyncNotifier<List<KanbanData>> {
         status: ProjectStatus.inProgress,
         backgroundColor: const Color(0xFFE0F2FE),
         foregroundColor: const Color(0xFF075985),
-        dueDate: "3 days left",
+        dueDate: DateFormat.yMd().format(
+          DateTime.now().add(const Duration(days: 3)),
+        ),
+        teamMembers: [
+          TeamMember(
+            id: "1",
+            name: "Alice Johnson",
+            email: "alice@example.com",
+            avatarColor: Color(0xFFE0F2FE),
+          ),
+          TeamMember(
+            id: "2",
+            name: "Bob Smith",
+            email: "bob@example.com",
+            avatarColor: Color(0xFFDCFCE7),
+          ),
+          TeamMember(
+            id: "3",
+            name: "Carol Davis",
+            email: "carol@example.com",
+            avatarColor: Color(0xFFFEE2E2),
+          ),
+        ],
         columns: [
           SortableData(
             KanbanColumnData(

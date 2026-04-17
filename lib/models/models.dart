@@ -7,7 +7,7 @@ class KanbanData {
   final ProjectStatus status;
   final Color backgroundColor;
   final Color foregroundColor;
-  final String dueDate;
+  final String? dueDate;
   final List<TeamMember> teamMembers;
   final List<SortableData<KanbanColumnData>> columns;
 
@@ -18,7 +18,7 @@ class KanbanData {
     required this.status,
     this.backgroundColor = const Color(0xFFE0F2FE),
     this.foregroundColor = const Color(0xFF075985),
-    required this.dueDate,
+    this.dueDate,
     this.teamMembers = const [],
     required this.columns,
   });
@@ -53,10 +53,10 @@ class KanbanData {
       "title": title,
       "description": description,
       "status": status.index,
-      "backgroundColor": backgroundColor.value,
-      "foregroundColor": foregroundColor.value,
+      "backgroundColor": backgroundColor.toARGB32(),
+      "foregroundColor": foregroundColor.toARGB32(),
       "dueDate": dueDate,
-      "teamMembers": teamMembers,
+      "teamMembers": teamMembers.map((member) => member.toJson()).toList(),
       "columns": columns.map((col) => col.data.toJson()).toList(),
     };
   }
@@ -70,7 +70,12 @@ class KanbanData {
       backgroundColor: Color(json["backgroundColor"] as int),
       foregroundColor: Color(json["foregroundColor"] as int),
       dueDate: json["dueDate"] as String,
-      teamMembers: json["teamMembers"],
+      teamMembers: (json["teamMembers"] as List)
+          .map(
+            (memberJson) =>
+                TeamMember.fromJson(memberJson as Map<String, dynamic>),
+          )
+          .toList(),
       columns: (json["columns"] as List)
           .map((colJson) => SortableData(KanbanColumnData.fromJson(colJson)))
           .toList(),
@@ -82,6 +87,24 @@ class KanbanData {
   }
 
   int get teamMemberCount => teamMembers.length;
+
+  // String getFormattedDueDate() {
+  //   if (dueDate == null) return "No due date";
+
+  //   final now = DateTime.now();
+  //   final difference = dueDate.difference(now).inDays;
+
+  //   if (difference < 0) {
+  //     final daysLate = -difference;
+  //     return "$daysLate day${daysLate == 1 ? '' : 's'} late";
+  //   } else if (difference == 0) {
+  //     return "Due today";
+  //   } else if (difference == 1) {
+  //     return "Due tomorrow";
+  //   } else {
+  //     return "$difference days left";
+  //   }
+  // }
 }
 
 class TeamMember {
@@ -103,6 +126,24 @@ class TeamMember {
       return "${parts[0][0]}${parts[1][0]}".toUpperCase();
     }
     return name.substring(0, 2).toUpperCase();
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'name': name,
+      'email': email,
+      'avatarColor': avatarColor.toARGB32(),
+    };
+  }
+
+  static TeamMember fromJson(Map<String, dynamic> json) {
+    return TeamMember(
+      id: json['id'] as String,
+      name: json['name'] as String,
+      email: json['email'] as String,
+      avatarColor: Color(json['avatarColor'] as int),
+    );
   }
 }
 
@@ -191,7 +232,7 @@ class KanbanTaskData {
       'title': title,
       'description': description,
       'priority': priority.index,
-      'color': color?.value,
+      'color': color?.toARGB32(),
       'dueDate': dueDate?.toIso8601String(),
     };
   }
