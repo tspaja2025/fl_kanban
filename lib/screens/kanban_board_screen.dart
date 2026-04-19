@@ -1,6 +1,6 @@
 import 'package:fl_kanban/shared/kanban_constants.dart';
 import 'package:fl_kanban/models/models.dart';
-import 'package:fl_kanban/providers/kanban_board_provider.dart';
+import 'package:fl_kanban/providers/kanban_provider.dart';
 import 'package:fl_kanban/widgets/badge.dart';
 import 'package:fl_kanban/widgets/card_container.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';

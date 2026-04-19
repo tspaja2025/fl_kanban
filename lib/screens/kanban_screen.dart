@@ -1,6 +1,6 @@
 import 'package:fl_kanban/shared/kanban_constants.dart';
 import 'package:fl_kanban/models/models.dart';
-import 'package:fl_kanban/providers/kanban_board_provider.dart';
+import 'package:fl_kanban/providers/kanban_provider.dart';
 import 'package:fl_kanban/widgets/badge.dart';
 import 'package:fl_kanban/widgets/card_container.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -8,17 +8,14 @@ import 'package:intl/intl.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:go_router/go_router.dart';
 
-class KanbanProjectScreen extends ConsumerStatefulWidget {
-  const KanbanProjectScreen({super.key});
+class KanbanScreen extends ConsumerStatefulWidget {
+  const KanbanScreen({super.key});
 
   @override
-  ConsumerState<KanbanProjectScreen> createState() =>
-      _KanbanProjectScreenState();
+  ConsumerState<KanbanScreen> createState() => _KanbanProjectScreenState();
 }
 
-class _KanbanProjectScreenState extends ConsumerState<KanbanProjectScreen> {
-  int tabIndex = 0;
-
+class _KanbanProjectScreenState extends ConsumerState<KanbanScreen> {
   final TextEditingController _searchController = TextEditingController();
 
   @override
@@ -51,35 +48,27 @@ class _KanbanProjectScreenState extends ConsumerState<KanbanProjectScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // ... your existing UI
-                    IndexedStack(
-                      index: tabIndex,
+                    Wrap(
+                      spacing: 16,
+                      runSpacing: 16,
                       children: [
-                        Wrap(
-                          spacing: 16,
-                          runSpacing: 16,
-                          children: [
-                            for (final board in boards)
-                              ProjectCard(
-                                key: ValueKey(board.id),
-                                onTap: () => context.pushNamed(
-                                  "kanbanProjectDetail",
-                                  pathParameters: {"id": board.id},
-                                ),
-                                projectId: board.id,
-                                title: board.title,
-                                description: board.description,
-                                status: board.status,
-                                backgroundColor: board.backgroundColor,
-                                foregroundColor: board.foregroundColor,
-                                dueDate: board.dueDate,
-                                teamMembers: board.teamMembers,
-                              ),
-                            const CreateProjectCard(),
-                          ],
-                        ),
-                        Column(children: [const Text("Active")]),
-                        Column(children: [const Text("Archived")]),
+                        for (final board in boards)
+                          ProjectCard(
+                            key: ValueKey(board.id),
+                            onTap: () => context.pushNamed(
+                              "kanbanProjectDetail",
+                              pathParameters: {"id": board.id},
+                            ),
+                            projectId: board.id,
+                            title: board.title,
+                            description: board.description,
+                            status: board.status,
+                            backgroundColor: board.backgroundColor,
+                            foregroundColor: board.foregroundColor,
+                            dueDate: board.dueDate,
+                            teamMembers: board.teamMembers,
+                          ),
+                        const CreateProjectCard(),
                       ],
                     ),
                   ],

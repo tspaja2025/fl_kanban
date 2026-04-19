@@ -1,6 +1,6 @@
 import 'package:fl_kanban/screens/auth_screen.dart';
 import 'package:fl_kanban/screens/kanban_board_screen.dart';
-import 'package:fl_kanban/screens/kanban_project_screen.dart';
+import 'package:fl_kanban/screens/kanban_screen.dart';
 import 'package:fl_kanban/shared/app_scaffold.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -29,7 +29,7 @@ final routerProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: "/projects",
             name: "projects",
-            builder: (context, state) => const KanbanProjectScreen(),
+            builder: (context, state) => const KanbanScreen(),
           ),
           GoRoute(
             path: "/projects/:id",
