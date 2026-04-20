@@ -1,4 +1,5 @@
 import 'package:fl_kanban/providers/auth_mode_provider.dart';
+import 'package:fl_kanban/widgets/logo.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
@@ -13,15 +14,7 @@ class AuthScreen extends ConsumerWidget {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Container(
-          width: 48,
-          height: 48,
-          decoration: BoxDecoration(
-            color: Colors.gray,
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: const Icon(LucideIcons.layoutDashboard, size: 32),
-        ),
+        Logo(),
         const Gap(16),
         const Text("Kanban Board").x2Large.bold,
         const Text("The editorial workspace for modern teams").small.muted,
@@ -83,28 +76,48 @@ class SignInForm extends ConsumerWidget {
                 const Gap(16),
                 PrimaryButton(
                   onPressed: () {
-                    context.goNamed("projects");
+                    context.goNamed("kanban");
                   },
                   alignment: Alignment.center,
                   child: const Text("Sign In"),
                 ),
                 const Gap(16),
-                const Text("OR CONTINUE WITH").center().muted.semiBold,
+                const Text("OR CONTINUE WITH").xSmall.muted.semiBold.center(),
                 const Gap(16),
-                OutlineButton(
-                  onPressed: () {
-                    context.goNamed("projects");
-                  },
-                  alignment: Alignment.center,
-                  child: const Text("Google"),
-                ),
-                const Gap(16),
-                OutlineButton(
-                  onPressed: () {
-                    context.goNamed("projects");
-                  },
-                  alignment: Alignment.center,
-                  child: const Text("Github"),
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlineButton(
+                        onPressed: () {
+                          context.goNamed("kanban");
+                        },
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Icon(BootstrapIcons.google, size: 16),
+                            const Gap(8),
+                            const Text("Google"),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const Gap(16),
+                    Expanded(
+                      child: OutlineButton(
+                        onPressed: () {
+                          context.goNamed("kanban");
+                        },
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Icon(BootstrapIcons.github, size: 16),
+                            const Gap(8),
+                            const Text("Github"),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),

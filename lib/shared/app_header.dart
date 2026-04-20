@@ -1,17 +1,14 @@
-import 'package:fl_kanban/providers/theme_provider.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:fl_kanban/widgets/logo.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:go_router/go_router.dart';
 
-class AppHeader extends ConsumerWidget {
+class AppHeader extends StatelessWidget {
   final bool showBackButton;
 
   const AppHeader({super.key, this.showBackButton = false});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final themeMode = ref.watch(themeProvider);
-
+  Widget build(BuildContext context) {
     return AppBar(
       leading: showBackButton
           ? [
@@ -20,21 +17,20 @@ class AppHeader extends ConsumerWidget {
                 icon: const Icon(LucideIcons.chevronLeft, size: 16),
               ),
             ]
-          : [],
+          : [Logo(width: 32, height: 32, size: 16)],
       title: const Text("Kanban Board"),
       trailing: [
         IconButton.ghost(
-          onPressed: () => ref.read(themeProvider.notifier).toggle(),
-          icon: Icon(
-            themeMode == ThemeMode.dark ? LucideIcons.sun : LucideIcons.moon,
-            size: 16,
-          ),
+          onPressed: () {},
+          icon: Icon(LucideIcons.bell, size: 16),
         ),
         IconButton.ghost(
-          onPressed: () {
-            context.pushNamed("auth");
-          },
-          icon: const Icon(LucideIcons.logOut, size: 16),
+          onPressed: () => context.pushNamed("settings"),
+          icon: Icon(LucideIcons.settings, size: 16),
+        ),
+        IconButton.ghost(
+          onPressed: () => context.pushNamed("auth"),
+          icon: Icon(LucideIcons.logOut, size: 16),
         ),
       ],
     );

@@ -334,6 +334,7 @@ class _KanbanColumnState extends ConsumerState<KanbanColumn> {
             ),
             PrimaryButton(
               onPressed: () {
+                // ignore: collection_methods_unrelated_type
                 final title = controller.values[#columnTitle] as String;
                 final notifier = ref.read(kanbanProvider.notifier);
                 notifier.editColumn(

@@ -1,4 +1,3 @@
-import 'package:fl_kanban/shared/kanban_constants.dart';
 import 'package:fl_kanban/models/models.dart';
 import 'package:fl_kanban/providers/kanban_provider.dart';
 import 'package:fl_kanban/widgets/badge.dart';
@@ -56,7 +55,7 @@ class _KanbanProjectScreenState extends ConsumerState<KanbanScreen> {
                           ProjectCard(
                             key: ValueKey(board.id),
                             onTap: () => context.pushNamed(
-                              "kanbanProjectDetail",
+                              "kanbanDetail",
                               pathParameters: {"id": board.id},
                             ),
                             projectId: board.id,
@@ -133,7 +132,7 @@ class _NewProjectFormState extends ConsumerState<NewProjectForm> {
               label: const Text("Title"),
               child: TextField(controller: widget.titleController),
             ),
-            const Gap(KanbanConstants.gapSize),
+            const Gap(16),
             FormField(
               key: const FormKey(#description),
               label: const Text("Description"),
@@ -142,7 +141,7 @@ class _NewProjectFormState extends ConsumerState<NewProjectForm> {
                 maxLines: 3,
               ),
             ),
-            const Gap(KanbanConstants.gapSize),
+            const Gap(16),
             FormField(
               key: const FormKey(#dueDate),
               label: const Text("Due Date"),
@@ -160,7 +159,7 @@ class _NewProjectFormState extends ConsumerState<NewProjectForm> {
                 },
               ),
             ),
-            const Gap(KanbanConstants.gapSize),
+            const Gap(16),
             TeamMemberSelector(
               selectedMembers: _teamMembers,
               onMembersChanged: (newMembers) {
