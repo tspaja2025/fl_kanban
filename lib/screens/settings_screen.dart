@@ -24,282 +24,289 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
     return Padding(
       padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text("Settings").large.bold,
-          const Text("Manage your account and workspace preferences.").muted,
-          const Gap(16),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              SizedBox(
-                width: 360,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text("Profile Settings").semiBold,
-                    const Gap(8),
-                    const Text(
-                      "Update your photo and personal details. This will be visible to your team.",
-                    ).small.muted,
-                  ],
-                ),
-              ),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
+      child: SingleChildScrollView(
+        scrollDirection: Axis.vertical,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text("Settings").large.bold,
+            const Text("Manage your account and workspace preferences.").muted,
+            const Gap(16),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                SizedBox(
+                  width: 360,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Avatar(
-                        size: 48,
-                        backgroundColor: Colors.gray,
-                        initials: Avatar.getInitials("TS"),
-                        provider: const NetworkImage(
-                          "https://avatars.githubusercontent.com/u/213942709?s=400&v=4",
-                        ),
-                      ),
-                      const Gap(16),
-                      PrimaryButton(
-                        onPressed: () {},
-                        child: const Text("Change photo"),
-                      ),
-                      const Gap(16),
-                      OutlineButton(
-                        onPressed: () {},
-                        child: const Text("Remove"),
-                      ),
+                      const Text("Profile Settings").semiBold,
+                      const Gap(8),
+                      const Text(
+                        "Update your photo and personal details. This will be visible to your team.",
+                      ).small.muted,
                     ],
                   ),
-                  const Gap(16),
-                  SizedBox(
-                    width: 500,
-                    child: const FormField(
-                      key: FormKey(#name),
-                      label: Text("Full Name"),
-                      child: TextField(),
-                    ),
-                  ),
-                  const Gap(16),
-                  SizedBox(
-                    width: 500,
-                    child: const FormField(
-                      key: FormKey(#email),
-                      label: Text("Email Address"),
-                      child: TextField(),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-          const Gap(16),
-          const Divider(),
-          const Gap(16),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              SizedBox(
-                width: 360,
-                child: Column(
+                ),
+                Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text("Notifications").semiBold,
-                    const Gap(8),
-                    const Text(
-                      "Choose how and when you want to be alerted about activity.",
-                    ).small.muted,
-                  ],
-                ),
-              ),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  SizedBox(
-                    width: 500,
-                    child: Card(
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Text("Task Assignments").semiBold,
-                              const Text(
-                                "Notify me when a new task is assigned to me.",
-                              ).small.muted,
-                            ],
-                          ),
-                          Switch(
-                            value: value,
-                            onChanged: (value) {
-                              setState(() {
-                                // Flip the switch.
-                                this.value = value;
-                              });
-                            },
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  const Gap(16),
-                  SizedBox(
-                    width: 500,
-                    child: Card(
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Text("Due Date Reminders").semiBold,
-                              const Text(
-                                "Receive alerts 24 hours before a task is due.",
-                              ).small.muted,
-                            ],
-                          ),
-                          Switch(
-                            value: value,
-                            onChanged: (value) {
-                              setState(() {
-                                // Flip the switch.
-                                this.value = value;
-                              });
-                            },
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  const Gap(16),
-                  SizedBox(
-                    width: 500,
-                    child: Card(
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Text("Workspace Updates").semiBold,
-                              const Text(
-                                "Weekly digest of board activity and team mentions.",
-                              ).small.muted,
-                            ],
-                          ),
-                          Switch(
-                            value: value,
-                            onChanged: (value) {
-                              setState(() {
-                                // Flip the switch.
-                                this.value = value;
-                              });
-                            },
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-          const Gap(16),
-          const Divider(),
-          const Gap(16),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              SizedBox(
-                width: 360,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text("Workspace Preferences").semiBold,
-                    const Gap(8),
-                    const Text(
-                      "Customize your personal visual experience across the dashboard.",
-                    ).small.muted,
-                  ],
-                ),
-              ),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  RadioGroup(
-                    value: themeValue,
-                    onChanged: (newValue) {
-                      ThemeMode newMode;
-
-                      if (newValue == 1) {
-                        newMode = ThemeMode.light;
-                      } else if (newValue == 2) {
-                        newMode = ThemeMode.dark;
-                      } else {
-                        newMode = ThemeMode.system;
-                      }
-
-                      ref.read(themeProvider.notifier).setTheme(newMode);
-                    },
-                    child: const Row(
-                      mainAxisSize: MainAxisSize.min,
+                    Row(
                       children: [
-                        RadioCard(value: 1, child: LightContainer()),
-                        Gap(16),
-                        RadioCard(value: 2, child: DarkContainer()),
-                        Gap(16),
-                        RadioCard(value: 3, child: SystemContainer()),
+                        Avatar(
+                          size: 48,
+                          backgroundColor: Colors.gray,
+                          initials: Avatar.getInitials("TS"),
+                          provider: const NetworkImage(
+                            "https://avatars.githubusercontent.com/u/213942709?s=400&v=4",
+                          ),
+                        ),
+                        const Gap(16),
+                        PrimaryButton(
+                          onPressed: () {},
+                          child: const Text("Change photo"),
+                        ),
+                        const Gap(16),
+                        OutlineButton(
+                          onPressed: () {},
+                          child: const Text("Remove"),
+                        ),
                       ],
                     ),
+                    const Gap(16),
+                    SizedBox(
+                      width: 500,
+                      child: const FormField(
+                        key: FormKey(#name),
+                        label: Text("Full Name"),
+                        child: TextField(),
+                      ),
+                    ),
+                    const Gap(16),
+                    SizedBox(
+                      width: 500,
+                      child: const FormField(
+                        key: FormKey(#email),
+                        label: Text("Email Address"),
+                        child: TextField(),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+            const Gap(16),
+            const Divider(),
+            const Gap(16),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                SizedBox(
+                  width: 360,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text("Notifications").semiBold,
+                      const Gap(8),
+                      const Text(
+                        "Choose how and when you want to be alerted about activity.",
+                      ).small.muted,
+                    ],
                   ),
-                ],
-              ),
-            ],
-          ),
-          const Gap(16),
-          const Divider(),
-          const Gap(16),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              PrimaryButton(
-                onPressed: () {
-                  showToast(
-                    context: context,
-                    location: ToastLocation.bottomRight,
-                    builder: (context, overlay) {
-                      return SurfaceCard(
-                        child: Basic(
-                          title: const Text("Preferences saved"),
-                          trailing: PrimaryButton(
-                            size: ButtonSize.small,
-                            onPressed: () {
-                              overlay.close();
-                            },
-                            child: const Text("Undo"),
-                          ),
-                          trailingAlignment: Alignment.center,
+                ),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    SizedBox(
+                      width: 500,
+                      child: Card(
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text("Task Assignments").semiBold,
+                                const Text(
+                                  "Notify me when a new task is assigned to me.",
+                                ).small.muted,
+                              ],
+                            ),
+                            Switch(
+                              value: value,
+                              onChanged: (value) {
+                                setState(() {
+                                  // Flip the switch.
+                                  this.value = value;
+                                });
+                              },
+                            ),
+                          ],
                         ),
-                      );
-                    },
-                  );
-                },
-                child: const Text("Save Preferences"),
-              ),
-            ],
-          ),
-        ],
+                      ),
+                    ),
+                    const Gap(16),
+                    SizedBox(
+                      width: 500,
+                      child: Card(
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text("Due Date Reminders").semiBold,
+                                const Text(
+                                  "Receive alerts 24 hours before a task is due.",
+                                ).small.muted,
+                              ],
+                            ),
+                            Switch(
+                              value: value,
+                              onChanged: (value) {
+                                setState(() {
+                                  // Flip the switch.
+                                  this.value = value;
+                                });
+                              },
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const Gap(16),
+                    SizedBox(
+                      width: 500,
+                      child: Card(
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text("Workspace Updates").semiBold,
+                                const Text(
+                                  "Weekly digest of board activity and team mentions.",
+                                ).small.muted,
+                              ],
+                            ),
+                            Switch(
+                              value: value,
+                              onChanged: (value) {
+                                setState(() {
+                                  // Flip the switch.
+                                  this.value = value;
+                                });
+                              },
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+            const Gap(16),
+            const Divider(),
+            const Gap(16),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                SizedBox(
+                  width: 360,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text("Workspace Preferences").semiBold,
+                      const Gap(8),
+                      const Text(
+                        "Customize your personal visual experience across the dashboard.",
+                      ).small.muted,
+                    ],
+                  ),
+                ),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    RadioGroup(
+                      value: themeValue,
+                      onChanged: (newValue) {
+                        ThemeMode newMode;
+
+                        if (newValue == 1) {
+                          newMode = ThemeMode.light;
+                        } else if (newValue == 2) {
+                          newMode = ThemeMode.dark;
+                        } else {
+                          newMode = ThemeMode.system;
+                        }
+
+                        ref.read(themeProvider.notifier).setTheme(newMode);
+                      },
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          RadioCard(
+                            value: 1,
+                            child: _buildLightPreview(context, ref),
+                          ),
+                          const Gap(16),
+                          RadioCard(
+                            value: 2,
+                            child: _buildDarkPreview(context, ref),
+                          ),
+                          const Gap(16),
+                          RadioCard(
+                            value: 3,
+                            child: _buildSystemPreview(context),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+            const Gap(16),
+            const Divider(),
+            const Gap(16),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                PrimaryButton(
+                  onPressed: () {
+                    showToast(
+                      context: context,
+                      location: ToastLocation.bottomRight,
+                      builder: (context, overlay) {
+                        return SurfaceCard(
+                          child: Basic(
+                            title: const Text("Preferences saved"),
+                            trailing: PrimaryButton(
+                              size: ButtonSize.small,
+                              onPressed: () {
+                                overlay.close();
+                              },
+                              child: const Text("Undo"),
+                            ),
+                            trailingAlignment: Alignment.center,
+                          ),
+                        );
+                      },
+                    );
+                  },
+                  child: const Text("Save Preferences"),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
-}
 
-class LightContainer extends ConsumerWidget {
-  const LightContainer({super.key});
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget _buildLightPreview(BuildContext context, WidgetRef ref) {
     final themeMode = ref.watch(themeProvider);
 
     return Container(
@@ -369,13 +376,8 @@ class LightContainer extends ConsumerWidget {
       ),
     );
   }
-}
 
-class DarkContainer extends ConsumerWidget {
-  const DarkContainer({super.key});
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget _buildDarkPreview(BuildContext context, WidgetRef ref) {
     final themeMode = ref.watch(themeProvider);
 
     return Container(
@@ -445,13 +447,8 @@ class DarkContainer extends ConsumerWidget {
       ),
     );
   }
-}
 
-class SystemContainer extends StatelessWidget {
-  const SystemContainer({super.key});
-
-  @override
-  Widget build(BuildContext context) {
+  Widget _buildSystemPreview(BuildContext context) {
     return Container(
       width: 200,
       decoration: BoxDecoration(
